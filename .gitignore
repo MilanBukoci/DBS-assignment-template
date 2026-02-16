@@ -1,0 +1,21 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.run.xml
+*.toc
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
+# Output
+*.pdf
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/

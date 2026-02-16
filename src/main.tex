@@ -1,0 +1,80 @@
+%! Author = jdubec
+%! Date = 16/02/2026
+
+\documentclass[11pt, a4paper]{article}
+
+% ─── Packages ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue!70!black}
+
+% ─── Bibliography ────────────────────────────────────────────────────────────
+\usepackage[style=numeric, backend=bibtex]{biblatex}
+\addbibresource{references.bib}
+
+% ─── Language (swap to lang/sk for Slovak) ───────────────────────────────────
+\input{lang/en}
+
+% ─── Student details ─────────────────────────────────────────────────────────
+\newcommand{\StudentName}{Arthur Dent, Alice Cooper}
+\newcommand{\StudyGroup}{Tuesday 11:00}
+\newcommand{\AssignmentNumber}{1}
+\newcommand{\AssignmentTitle}{Assignment Title}
+\newcommand{\AcademicYear}{2025/2026}
+
+% =============================================================================
+\begin{document}
+
+% ─── Cover page ──────────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+
+    \includegraphics[width=0.3\textwidth]{../assets/logo.png}
+
+    \vspace{0.3cm}
+    {\large \LabelUniversity}\\[2pt]
+    {\large \LabelFaculty}
+
+    \vspace{2.5cm}
+    {\Huge\bfseries \LabelProtocol}
+
+    \vspace{0.6cm}
+    {\LARGE \LabelCode{} --- \LabelCourse}
+
+    \vspace{0.4cm}
+    {\Large \LabelAssignment{} \AssignmentNumber: \AssignmentTitle}
+
+    \vfill
+
+    \begin{tabular}{r l}
+        \textbf{\LabelStudent:} & \StudentName  \\[4pt]
+        \textbf{\LabelGroup:}   & \StudyGroup   \\[4pt]
+        \textbf{\LabelYear:}    & \AcademicYear \\[4pt]
+        \textbf{\LabelDate:}    & \today        \\
+    \end{tabular}
+
+    \vspace{1.5cm}
+\end{titlepage}
+
+% ─── Table of contents ───────────────────────────────────────────────────────
+\renewcommand{\contentsname}{\LabelContents}
+\tableofcontents
+\newpage
+
+% ─── Sections (add, remove, or rename as needed) ────────────────────────────
+
+\section{First Section}
+
+Your content here.
+
+\section{Second Section}
+
+Your content here.
+
+% ─── Bibliography ────────────────────────────────────────────────────────────
+\printbibliography
+
+\end{document}
