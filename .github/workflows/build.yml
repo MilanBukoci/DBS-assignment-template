@@ -20,8 +20,14 @@ jobs:
           working_directory: src
           root_file: main.tex
 
+      - name: Rename PDF
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          mv src/main.pdf "src/${REPO_NAME}-${SHORT_SHA}.pdf"
+
       - name: Upload PDF
         uses: actions/upload-artifact@v6
         with:
-          name: assignment
-          path: src/main.pdf
+          name: ${{ github.event.repository.name }}-${{ github.sha }}
+          path: src/*.pdf
