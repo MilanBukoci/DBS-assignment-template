@@ -36,8 +36,8 @@
 
 % ─── Student details ─────────────────────────────────────────────────────────
 \newcommand{\StudentName}{Nikita Zharikov, Milan Bukóci}
-\newcommand{\StudyGroup}{Tuesday 14:00}
-\newcommand{\AssignmentNumber}{3}
+\newcommand{\StudyGroup}{Utorok 14:00}
+\newcommand{\AssignmentNumber}{1}
 \newcommand{\AssignmentTitle}{E-shop}
 \newcommand{\AcademicYear}{2025/2026}
 
@@ -87,8 +87,8 @@
 % Template source: https://github.com/FIIT-Databases/assignment-template
 % =============================================================================
 
-\section{Analysis}
-\label{sec:analysis}
+\section{Špecifikácia}
+\label{sec:specifikacia}
 
 The goal of this project was to create a submission template for the DBS
 course that students can clone and start writing in immediately. The template
@@ -123,8 +123,8 @@ When listing ordered steps, use \texttt{enumerate} instead:
 
 
 \newpage
-\section{Proposal}
-\label{sec:proposal}
+\section{Definovanie použivateľských scenárov}
+\label{sec:definovanie_pouzivatelskych_scenarov}
 
 We compared a few approaches before settling on the current structure.
 Table~\ref{tab:comparison} summarizes our options.
@@ -157,8 +157,8 @@ We found this less stressful than debugging \LaTeX{} table alignment.
 
 
 \newpage
-\section{Implementation}
-\label{sec:implementation}
+\section{Návrh relačného modelu}
+\label{sec:navrh_relacneho_modelu}
 
 The template lives in a simple directory structure with localization files
 separated from the main document. Switching language requires changing one
@@ -204,24 +204,8 @@ in \cite{elmasri2016}. For PostgreSQL-specific syntax, see
 
 
 \newpage
-\section{Challenges}
-\label{sec:challenges}
-
-The main challenge was keeping the template simple enough that a student
-seeing \LaTeX{} for the first time would not immediately close the file.
-We solved this by limiting the preamble to essential packages and
-putting all examples in one place --- this document.
-
-We also learned that BibTeX interprets \texttt{@} signs in comments as
-entry types, which caused confusing errors. Small things like this are
-easy to fix once you know about them, but hard to debug the first time\footnote{A
-group of frogs is called an ``army.'' A group of students debugging BibTeX at
-2\,AM is called ``Tuesday.''}.
-
-
-\newpage
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Zhodnotenie}
+\label{sec:zhodnotenie}
 
 The template meets the requirements from Section~\ref{sec:analysis}.
 It compiles with a standard \LaTeX{} distribution, supports two
