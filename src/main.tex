@@ -90,20 +90,12 @@
 \section{Špecifikácia}
 \label{sec:specifikacia}
 
-The goal of this project was to create a submission template for the DBS
-course that students can clone and start writing in immediately. The template
-should be easy to use, support Slovak and English, and not require any prior
-\LaTeX{} experience\footnote{If this is your first time with \LaTeX{}, the
-Overleaf guide \cite{overleaf-docs} covers everything you need in about 30 minutes.}.
-
-The template repository is available at \cite{template-repo}.
+Navrhovaný systém predstavuje internetový obchod (eshop) zameraný na predaj technických produktov, vrátane predaja opravených (repasovaných) zariadení a výkupu pokazených produktov na opravu.
 
 % ── Subsections ──────────────────────────────────────────────────────────────
 % Use \subsection{} and \subsubsection{} when you need more structure.
 
 \subsection{Účel systému a riešený problém}
-
-Navrhovaný systém predstavuje internetový obchod (eshop) zameraný na predaj technických produktov, vrátane predaja opravených (repasovaných) zariadení a výkupu pokazených produktov na opravu.
 
 Systém rieši nasledovné problémy:
 
@@ -219,6 +211,159 @@ Interný pracovník zabezpečujúci komunikáciu so zákazníkmi.
 \subsection*{Úroveň prístupu}
 
 Prístup k údajom o zákazníkoch, objednávkach a správach, bez oprávnenia meniť skladové či finančné údaje.
+
+\subsection{Kľúčové entity systému}
+
+\subsubsection{Produkt}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor produktu,
+    \item názov,
+    \item nákupná cena,
+    \item predajná cena,
+    \item stav (nový, pokazený, opravovaný, opravený),
+    \item lokalita v sklade,
+    \item dátum nákupu,
+    \item počet kusov na sklade.
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Produkt je centrálna entita systému – predstavuje predmet predaja aj opravy.
+
+\subsubsection{Zákazník}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor zákazníka,
+    \item meno a priezvisko,
+    \item adresa,
+    \item kontaktné údaje (napr. e-mail),
+    \item dátum vytvorenia účtu.
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Umožňuje evidenciu objednávok, komunikácie a histórie nákupov.
+
+\subsubsection{Objednávka}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor objednávky,
+    \item zákazník,
+    \item dátum vytvorenia,
+    \item adresa doručenia,
+    \item stav objednávky (vytvorená, potvrdená, odoslaná, zrušená),
+    \item zoznam položiek (produkt + množstvo).
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Zaznamenáva obchodnú transakciu medzi zákazníkom a systémom.
+
+\subsubsection{Správa (technická podpora)}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor správy,
+    \item zákazník,
+    \item dátum odoslania,
+    \item obsah správy,
+    \item stav vybavenia.
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Zabezpečuje evidenciu komunikácie a riešenie problémov.
+
+\subsubsection{Oprava}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor opravy,
+    \item produkt,
+    \item opravár,
+    \item dátum prijatia na opravu,
+    \item priorita (štandardná / zrýchlená),
+    \item použitý materiál,
+    \item dátum ukončenia,
+    \item výsledný stav.
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Umožňuje riadiť proces opravy a spätné zaradenie produktu do predaja.
+
+\subsection {Biznis pravidlá a obmedzenia}
+
+\subsubsection{Pravidlá týkajúce sa predaja}
+
+\begin{itemize}
+    \item Nie je možné predať produkt so stavom „pokazený“ alebo „opravovaný“.
+    \item Nie je možné predať viac kusov produktu, než je aktuálne dostupné množstvo na sklade.
+    \item Produkt môže byť zaradený do objednávky len ak je evidovaný v systéme.
+\end{itemize}
+
+\subsection*{Integritné obmedzenia}
+
+\begin{itemize}
+    \itemkontrola stavu produktu pred vytvorením/potvrdením objednávky,
+    \itemkontrola dostupného množstva (množstvo ≥ 0),
+    \itemreferenčná integrita medzi objednávkou a produktom.
+\end{itemize}
+
+\subsubsection{Pravidlá týkajúce sa skladu}
+
+\begin{itemize}
+    \item Po potvrdení objednávky sa musí znížiť počet kusov na sklade.
+    \item Po prijatí nového tovaru sa musí zvýšiť počet kusov na sklade.
+    \item Stav produktu musí byť vždy jedna z povolených hodnôt (nový, pokazený, opravovaný, opravený).
+\end{itemize}
+
+\subsection*{Integritné obmedzenia}
+
+\begin{itemize}
+    \item množstvo na sklade nesmie byť záporné,
+    \item obmedzenie domény pre atribút „stav produktu“.
+\end{itemize}
+
+\subsubsection{Pravidlá týkajúce sa opráv}
+
+\begin{itemize}
+    \item Produkt môže byť zaradený do opravy len ak je v stave „pokazený“.
+    \item Po úspešnej oprave sa stav zmení na „opravený“.
+    \item Priorita opravy ovplyvňuje poradie v poradovníku.
+\end{itemize}
+
+\subsection*{Integritné obmedzenia}
+
+\begin{itemize}
+    \item väzba medzi entitou Oprava a existujúcim produktom,
+    \item kontrola povolených prechodov stavov (stavový model).
+\end{itemize}
+
+\subsubsection{Pravidlá týkajúce sa prístupových práv}
+
+\begin{itemize}
+    \item Opravár nemá prístup k údajom o objednávkach.
+    \item Zákazník má prístup len k vlastným údajom.
+    \item Administrátor má plný prístup.
+    \item Technická podpora nemôže meniť skladové množstvá ani finančné údaje.
+\end{itemize}
+
+\subsection*{Integritné obmedzenia}
+
+\begin{itemize}
+    \item implementácia rolí a oprávnení,
+    \item kontrola prístupových práv na úrovni operácií nad entitami.
+\end{itemize}
 
 \newpage
 \section{Definovanie použivateľských scenárov}
