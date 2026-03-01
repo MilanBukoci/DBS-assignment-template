@@ -101,26 +101,124 @@ The template repository is available at \cite{template-repo}.
 % ── Subsections ──────────────────────────────────────────────────────────────
 % Use \subsection{} and \subsubsection{} when you need more structure.
 
-\subsection{Requirements}
+\subsection{Účel systému a riešený problém}
 
-We identified the following requirements:
+Navrhovaný systém predstavuje internetový obchod (eshop) zameraný na predaj technických produktov, vrátane predaja opravených (repasovaných) zariadení a výkupu pokazených produktov na opravu.
+
+Systém rieši nasledovné problémy:
 
 \begin{itemize}
-    \item Clean cover page with faculty branding.
-    \item Bilingual support (SK/EN) via a single toggle.
-    \item Examples of tables, figures, code, and citations.
-    \item Minimal package dependencies --- it should compile everywhere.
+    \item potrebu zákazníka vyhľadať a zakúpiť konkrétny produkt bez nutnosti fyzickej návštevy kamennej predajne,
+    \item potrebu efektívneho porovnávania produktov (cena, stav, dostupnosť),
+    \item evidenciu skladových zásob v reálnom čase,
+    \item riadenie procesu opráv a opätovného predaja opravených produktov,
+    \item správu komunikácie so zákazníkmi.
 \end{itemize}
 
-When listing ordered steps, use \texttt{enumerate} instead:
+\subsection*{Cieľová skupina}
 
-\begin{enumerate}
-    \item Clone the repository.
-    \item Edit \texttt{main.tex}.
-    \item Run \texttt{make}.
-    \item Submit the PDF.
-\end{enumerate}
+System je určený pre:
 
+\begin{itemize}
+    \item zákazníkov, ktorí preferujú online nákup techniky,
+    \item zákazníkov hľadajúcich cenovo dostupnejšie (opravené) produkty,
+    \item interných pracovníkov firmy zabezpečujúcich predaj, sklad, opravy a podporu.
+\end{itemize}
+
+\subsection*{Pridaná hodnota systému}
+
+\begin{itemize}
+    \item pohodlné vyhľadávanie a porovnávanie produktov,
+    \item dostupnosť informácií o stave a skladovej zásobe v reálnom čase,
+    \item možnosť nákupu lacnejších opravených produktov,
+    \item efektívne riadenie opráv a priorít,
+    \item centralizovaná evidencia objednávok, zákazníkov a komunikácie,
+    \item zníženie administratívnej záťaže zamestnancov.
+\end{itemize}
+
+\subsection{Aktéry systému}
+
+\subsubsection{Zákazník}
+
+\subsection*{Charakteristika}
+
+Externý použivateľ systému.
+
+\subsection*{Zodpovednosti a oprávnenia}
+
+\begin{itemize}
+    \item prehliadanie ponuky produktov,
+    \item filtrovanie a vyhľadávanie,
+    \item vytváranie a správa objednávok,
+    \item úprava osobných údajov,
+    \item odosielanie správ technickej podpore,
+    \item sledovanie stavu objednávky.
+\end{itemize}
+
+\subsection*{Úroveň prístupu}
+
+Najnižšia – prístup len k vlastným údajom a verejnej ponuke produktov.
+
+\subsubsection{Administrátor}
+
+\subsection*{Charakteristika}
+
+Interný pracovník s najvyššou úrovňou oprávnení.
+
+\subsection*{Zodpovednosti a oprávnenia}
+
+\begin{itemize}
+    \item správa produktov (vytváranie, úprava, zmena stavu),
+    \item správa skladových zásob,
+    \item správa objednávok (potvrdenie, zrušenie, zmena stavu),
+    \item objednávanie tovaru od dodávateľov,
+    \item prideľovanie produktov na opravu opravárom,
+    \item správa používateľských účtov a prístupových práv.
+\end{itemize}
+
+\subsection*{Úroveň prístupu}
+
+Plný prístup ku všetkým údajom systému.
+
+\subsubsection{Opravár}
+
+\subsection*{Charakteristika}
+
+Interný pracovník zodpovedný za opravy produktov.
+
+\subsection*{Zodpovednosti a oprávnenia}
+
+\begin{itemize}
+    \item zobrazenie poradovníka produktov určených na opravu,
+    \item evidencia priebehu opravy,
+    \item zmena stavu produktu (pokazený → opravovaný → opravený),
+    \item evidencia použitých náhradných dielov,
+    \item prístup k informáciám o skladových zásobách náhradných dielov.
+\end{itemize}
+
+\subsection*{Úroveň prístupu}
+
+Prístup k údajom o produktoch určených na opravu a k skladu náhradných dielov, bez prístupu k objednávkam zákazníkov.
+
+\subsubsection{Technická podpora}
+
+\subsection*{Charakteristika}
+
+Interný pracovník zabezpečujúci komunikáciu so zákazníkmi.
+
+\subsection*{Zodpovednosti a oprávnenia}
+
+\begin{itemize}
+    \item evidencia a správa správ od zákazníkov,
+    \item odpovedanie na požiadavky,
+    \item poskytovanie informácií o dostupnosti tovaru,
+    \item úprava objednávok (v rámci oprávnení),
+    \item úprava osobných údajov zákazníka na základe žiadosti.
+\end{itemize}
+
+\subsection*{Úroveň prístupu}
+
+Prístup k údajom o zákazníkoch, objednávkach a správach, bez oprávnenia meniť skladové či finančné údaje.
 
 \newpage
 \section{Definovanie použivateľských scenárov}
