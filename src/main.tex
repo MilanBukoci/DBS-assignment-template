@@ -400,12 +400,12 @@ Scenár popisuje proces, v ktorom zákazník vyberie produkty z ponuky eshopu a 
 Počas realizácie scenára prebiehajú nasledujúce operácie nad databázou:
 
 \begin{itemize}
-    \item vyhľadanie zákazníka v tabuľke Zákazník
-    \item vyhľadanie produktov v tabuľke Produkt
-    \item kontrola dostupného množstva produktu (Produkt.count)
-    \item vytvorenie nového záznamu v tabuľke Objednávka
-    \item vytvorenie jedného alebo viacerých záznamov v tabuľke Objednavka\_Produkt
-    \item aktualizácia počtu kusov produktu v tabuľke Produkt (zníženie hodnoty count)
+    \item vyhľadanie zákazníka v tabuľke \textbf{Zákazník}
+    \item vyhľadanie produktov v tabuľke \textbf{Produkt}
+    \item kontrola dostupného množstva produktu (\textbf{Produkt.count})
+    \item vytvorenie nového záznamu v tabuľke \textbf{Objednávka}
+    \item vytvorenie jedného alebo viacerých záznamov v tabuľke \textbf{Objednavka\_Produkt}
+    \item aktualizácia počtu kusov produktu v tabuľke \textbf{Produkt} (zníženie hodnoty \textit{count})
 \end{itemize}
 
 \subsection*{Alternatívne toky}
@@ -454,35 +454,78 @@ Pre tento scenár je najvhodnejší \textbf{sekvenčný diagram (Sequence Diagra
 
 % ── PRIDAT OBRAZOK SEKVENCNEHO DIAGRAMU ───────────────────────────────────────────────────────────────────
 
+\subsection{Pridelenie pokazeného produktu na opravu}
 
-We compared a few approaches before settling on the current structure.
-Table~\ref{tab:comparison} summarizes our options.
+\subsection*{Aktér}
 
-% ── Tables ───────────────────────────────────────────────────────────────────
-% Use \begin{table}[H] to place the table exactly here.
-% Label it with \label{} and reference it with Table~\ref{}.
+Administrátor
 
-\begin{table}[H]
-    \centering
-    \caption{Comparison of template approaches}
-    \label{tab:comparison}
-    \begin{tabular}{l c c c}
-        \toprule
-        \textbf{Approach}  & \textbf{Easy to edit} & \textbf{Bilingual} & \textbf{Compiles anywhere} \\
-        \midrule
-        Word document       & yes                   & manual             & n/a  \\
-        Markdown + Pandoc   & yes                   & no                 & maybe \\
-        \LaTeX{} template   & yes                   & yes                & yes  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\subsection*{Stručný popis}
 
-We chose \LaTeX{} because it handles structured documents, citations,
-and cross-references well --- things that matter when writing technical
-reports\footnote{It also looks way better than a Word document. But we are
-biased.}. Unrelated: the wood frog can survive being frozen solid for months ---
-its heart stops, it stops breathing, and in spring it just thaws and hops away.
-We found this less stressful than debugging \LaTeX{} table alignment.
+Scenár popisuje proces, v ktorom administrátor zaradí pokazený produkt do procesu opravy. Administrátor vyberie pokazený produkt zo systému a priradí ho konkrétnemu opravárovi. Následne systém vytvorí záznam o oprave, ktorý bude opravár spracovávať.
+
+\subsection*{Hlavný tok scenára}
+
+\begin{enumerate}
+    \item Administrátor sa prihlási do systému.
+    \item Administrátor zobrazí zoznam produktov evidovaných v systéme.
+    \item Administrátor vyfiltruje produkty so stavom „pokazený“.
+    \item Administrátor vyberie produkt, ktorý má byť opravený.
+    \item Administrátor vyberie opravára, ktorý bude za opravu zodpovedný.
+    \item Administrátor nastaví prioritu opravy.
+    \item Systém vytvorí nový záznam o oprave.
+    \item Systém priradí zvoleného opravára k oprave.
+    \item Oprava je uložená v systéme a zaradená do poradovníka opráv.
+\end{enumerate}
+
+\subsection*{Čo sa deje na dátovej vrstve}
+
+Pri realizácii scenára systém vykonáva nasledujúce operácie nad databázou:
+
+\begin{itemize}
+    \item vyhľadanie produktu v tabuľke \textbf{Produkt}
+    \item kontrola stavu produktu \textbf{(status \= pokazený)}
+    \item vyhľadanie opravára v tabuľke \textbf{Opravár}
+    \item vytvorenie nového záznamu v tabuľke \textbf{Oprava}
+    \item uloženie identifikátora produktu (\textbf{product\_id}) a opravára (\textbf{repairman\_id}) do záznamu opravy
+\end{itemize}
+
+\subsection*{Alternatívne toky}
+
+\textbf{A1 – Produkt nie je v stave pokazený}
+
+\begin{enumerate}
+    \item Administrátor vyberie produkt.
+    \item Systém zistí, že stav produktu nie je „pokazený“.
+    \item Systém zobrazí upozornenie.
+    \item Administrátor musí vybrať iný produkt.
+\end{enumerate}
+
+\noindent \textbf{A2 - Opravár nie je dostupný}
+
+\begin{enumerate}
+    \item Administrátor sa pokúsi priradiť opravára.
+    \item Zvolený opravár má už maximálny počet pridelených opráv.
+    \item Administrátor musí vybrať iného opravára.
+\end{enumerate}
+
+\subsection*{Podporný UML diagram}
+
+Pre tento scenár je vhodný \textbf{diagram aktivít (Activity Diagram)}.
+
+\noindent Diagram aktivít umožňuje znázorniť:
+
+\begin{itemize}
+    \item postup jednotlivých krokov procesu,
+    \item rozhodovacie body (napr. kontrola stavu produktu),
+    \item tok procesu od výberu produktu až po vytvorenie opravy.
+\end{itemize}
+
+\noindent Diagram jasne znázorňuje logiku procesu priraďovania opravy a rozhodovacie podmienky v systéme.
+
+% ── PRIDAT OBRAZOK SEKVENCNEHO DIAGRAMU ───────────────────────────────────────────────────────────────────
+
+% ── PRIDAT 3. A 4. USER STORIES  ────────────────────────────────────────────────────────────
 
 
 \newpage
