@@ -369,6 +369,92 @@ Umožňuje riadiť proces opravy a spätné zaradenie produktu do predaja.
 \section{Definovanie použivateľských scenárov}
 \label{sec:definovanie_pouzivatelskych_scenarov}
 
+\subsection{Vytvorenie objednávky zákazníkom}
+
+\subsection*{Aktér}
+
+Zákazník
+
+\subsection*{Stručný popis}
+
+Scenár popisuje proces, v ktorom zákazník vyberie produkty z ponuky eshopu a vytvorí objednávku. Zákazník môže pridať jeden alebo viac produktov do objednávky, zadať doručovaciu adresu a potvrdiť objednávku. Po potvrdení objednávky systém uloží objednávku do databázy a aktualizuje množstvo produktov na sklade.
+
+\subsection*{Hlavný tok scenára}
+
+\begin{enumerate}
+    \item Zákazník si prehliada ponuku produktov dostupných v eshope.
+    \item Zákazník vyberie jeden alebo viac produktov, ktoré chce zakúpiť.
+    \item Zákazník zadá požadované množstvo pre každý produkt.
+    \item Zákazník prejde do procesu vytvorenia objednávky.
+    \item Zákazník zadá doručovaciu adresu.
+    \item Systém overí dostupnosť produktov na sklade.
+    \item Zákazník potvrdí vytvorenie objednávky.
+    \item Systém vytvorí novú objednávku v databáze.
+    \item Systém vytvorí položky objednávky pre jednotlivé produkty.
+    \item Systém aktualizuje množstvo produktov na sklade.
+    \item Objednávka je uložená v systéme so stavom „vytvorená“.
+\end{enumerate}
+
+\subsection*{Čo sa deje na dátovej vrstve}
+
+Počas realizácie scenára prebiehajú nasledujúce operácie nad databázou:
+
+\begin{itemize}
+    \item vyhľadanie zákazníka v tabuľke Zákazník
+    \item vyhľadanie produktov v tabuľke Produkt
+    \item kontrola dostupného množstva produktu (Produkt.count)
+    \item vytvorenie nového záznamu v tabuľke Objednávka
+    \item vytvorenie jedného alebo viacerých záznamov v tabuľke Objednavka_Produkt
+    \item aktualizácia počtu kusov produktu v tabuľke Produkt (zníženie hodnoty count)
+\end{itemize}
+
+\subsection*{Alternatívne toky}
+
+\textbf{A1 - Nedostatočné množstvo na sklade}
+
+\begin{enumerate}
+    \item Systém pri kontrole dostupnosti zistí, že požadované množstvo produktu nie je dostupné.
+    \item Systém informuje zákazníka o nedostupnosti produktu.
+    \item Zákazník môže:
+    \begin{itemize}
+        \item znížiť požadované množstvo produktu,
+        \item odstrániť produkt z objednávky,
+        \item alebo zrušiť vytváranie objednávky.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{A2 - Neplatná doručovacia adresa}
+
+\begin{enumerate}
+    \item Zákazník zadá neúplnú alebo neplatnú adresu.
+    \item Systém zobrazí upozornenie a vyzve zákazníka na opravu údajov.
+    \item Proces vytvorenia objednávky pokračuje po opravení údajov.
+\end{enumerate}
+
+\subsection*{Podporný UML diagram}
+
+Pre tento scenár je najvhodnejší \textbf{sekvenčný diagram (Sequence Diagram)}.
+
+Sekvenčný diagram umožňuje znázorniť:
+
+\begin{itemize}
+    \item interakciu medzi zákazníkom a systémom,
+    \item postupnosť operácií pri vytváraní objednávky,
+    \item komunikáciu medzi jednotlivými komponentmi systému a databázou.
+\end{itemize}
+
+Diagram znázorňuje najmä:
+
+\begin{itemize}
+    \item výber produktov,
+    \item kontrolu skladových zásob,
+    \item vytvorenie objednávky,
+    \item uloženie údajov do databázy.
+\end{itemize}
+
+% ── PRIDAT OBRAZOK SEKVENCNEHO DIAGRAMU ───────────────────────────────────────────────────────────────────
+
+
 We compared a few approaches before settling on the current structure.
 Table~\ref{tab:comparison} summarizes our options.
 
