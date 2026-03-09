@@ -529,47 +529,215 @@ Pre tento scenár je vhodný \textbf{diagram aktivít (Activity Diagram)}, ako j
 \section{Návrh relačného modelu}
 \label{sec:navrh_relacneho_modelu}
 
-The template lives in a simple directory structure with localization files
-separated from the main document. Switching language requires changing one
-line:
+Diagram relačného modelu našej databázy~\ref{fig:physical_model} pozostáva z 8 základných tabuliek a dvoch prepojovacích tabuliek (Objednavka\_Tovar, Oprava\_Diel).
+V každej z tabuliek sú uvedené všetky potrebné atribúty. Not Null sú označené hviezdičkami (*) (krúžky na diagrame) a všetky ostatné obmedzenia a kľúče sa nachádzajú pri typoch údajov v lomených zátvorkách (napr. <<PK, AI>>, <<FK>>).
 
-% ── Code listings ────────────────────────────────────────────────────────────
-% Use lstlisting for short code snippets.
 
-\begin{lstlisting}[language=TeX, caption={Switching language in the preamble}]
-% English
-\input{lang/en}
 
-% Slovak
-\input{lang/sk}
-\end{lstlisting}
+\subsection{Detailný popis tabuliek}
 
-For SQL or other languages, change the \texttt{language} parameter:
+\subsubsection{Zákazník}
+\textbf{Účel v kontexte systému:}
+Tabuľka obsahuje záznamy všetkých používateľov systému. Slúži na ukladanie ich údajov, ktoré sú neskôr potrebné na spracovanie objednávky alebo na zaslanie správy podpore.
 
-\begin{lstlisting}[language=SQL, caption={Example SQL query}]
-SELECT s.name, COUNT(*) AS submission_count
-FROM students s
-JOIN submissions sub ON s.id = sub.student_id
-GROUP BY s.name
-ORDER BY submission_count DESC;
-\end{lstlisting}
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{email : VARCHAR[254] <<UQ>>} - \textbf{Not Null}, Unique (každý zákazník musí mať unikátny email, na jeden môže byť zaregistrovaný iba jeden účet)
+    \item \texttt{tel\_cislo : VARCHAR[15] <<UQ>>} - Unique (takisto ako email, musí byť unikátny, ale nie je povinný)
+    \item \texttt{meno : VARCHAR[100]} - (nie je povinný údaj, zákazník si ho môže uviesť už v objednávke alebo neskôr)
+    \item \texttt{adresa : VARCHAR[255]} - (tiež je len pre pohodlie zákazníka, ak ho zadá - bude automaticky zadávaný do objednávky)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každý zákazník dostane pri registrácii unikatné id (umelý kľúč). To je potrebné, aby mohol potom meniť všetky ostatné údaje a účet zostal rovnaký.
 
-% ── Inline code ──────────────────────────────────────────────────────────────
-% Use \texttt{} for inline code: \texttt{SELECT * FROM ...}
+\textbf{Cudzie kľúče:}
+Táto tabuľka nemá cudzie kľúče.
 
-References to tables, figures, and sections are automatic. For example,
-this is Section~\ref{sec:implementation}, the comparison is in
-Table~\ref{tab:comparison}, and the faculty logo is shown in
-Figure~\ref{fig:logo} in Attachment~\ref{sec:attachment-a1}.
-If you add or reorder content, the numbers update on the next build.
 
-% ── Citations ────────────────────────────────────────────────────────────────
-% Add entries to references.bib, then cite them with \cite{key}.
-% The bibliography at the end is generated automatically.
 
-The database fundamentals referenced throughout the course are covered
-in \cite{elmasri2016}. For PostgreSQL-specific syntax, see
-\cite{postgresql-docs}.
+\subsubsection{Správa}
+\textbf{Účel v kontexte systému:}
+Tabuľka slúži na ukladanie správ a požiadaviek od zákazníkov pre technickú podporu. Umožňuje začať komunikáciu a sledovať stav riešenia problémov.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{id\_zakaznika : INT <<FK>>} - \textbf{Not Null}, Foreign Key (prepája správu s konkrétnym zákazníkom, ktorý ju vytvoril)
+    \item \texttt{datum\_vytvorenia : TIMESTAMP <<DF>>} - \textbf{Not Null}, Default (automaticky zaznamená presný čas vytvorenia správy systémom)
+    \item \texttt{sprava : TEXT} - \textbf{Not Null} (samotný text požiadavky alebo problému od zákazníka)
+    \item \texttt{status : ENUM('Nova', 'Dokoncena') <<DF>> DEFAULT 'Nova'} - \textbf{Not Null}, Default (každá nová správa automaticky má stav 'Nova', pokiaľ ju podpora nevyrieši)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každá správa dostane pri vytvorení unikátne id (umelý kľúč). Slúži na presnú identifikáciu konkrétnej správy v systéme, aj keby zákazník poslal niekoľko správ s identickým textom v rovnaký čas.
+
+\textbf{Cudzie kľúče:}
+Tabuľka obsahuje jeden cudzí kľúč: \texttt{id\_zakaznika}, ktorý odkazuje na primárny kľúč v tabuľke \texttt{Zakaznik -> id}. Ukazuje na konkrétneho existujúceho zákazníka, ktorý túto správu poslal.
+
+
+
+\subsubsection{Objednávka}
+\textbf{Účel v kontexte systému:}
+Tabuľka slúži na uchovávanie všetkých objednávok, ktoré zákazníci vytvorili. Ukladá informácie o doručení, čase nákupu a aktuálnom stave objednávky.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{id\_zakaznika : INT <<FK>>} - \textbf{Not Null}, Foreign Key (prepája objednávku s konkrétnym zákazníkom)
+    \item \texttt{datum\_vytvorenia : TIMESTAMP <<DF>>} - \textbf{Not Null}, Default (automaticky zaznamená presný čas vytvorenia objednávky)
+    \item \texttt{adresa\_dorucenia : VARCHAR[255]} - \textbf{Not Null} (fyzická adresa, na ktorú má byť tovar doručený)
+    \item \texttt{status : ENUM('Vytvorena', 'Zrusena', 'Dokoncena') <<DF>> DEFAULT 'Vytvorena'} - \textbf{Not Null}, Default (každá nová objednávka automaticky dostáva stav 'Vytvorena', pokiaľ nebude spracovaná, alebo zakznik ju nezruší)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každá objednávka dostane pri vytvorení unikátne id (umelý kľúč). Slúži na identifikáciu nákupu a umožňuje bezpečne spájať s tovarami cez prepojovaciu tabuľku bez rizika duplicity.
+
+\textbf{Cudzie kľúče:}
+Tabuľka obsahuje jeden cudzí kľúč: \texttt{id\_zakaznika}, ktorý odkazuje na primárny kľúč v tabuľke \texttt{Zakaznik -> id}. Ukazuje na konkrétneho existujúceho zákazníka, ktorý túto objednávku vytvoril.
+
+
+
+\subsubsection{Tovar}
+\textbf{Účel v kontexte systému:}
+Tabuľka slúži na ukladanie fyzických kusov produktu, ktoré máme na sklade. Pomáha sledovať stav každého z nich a konkrétne miesto jeho naskladnenia.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{id\_produktu : INT <<FK>>} - \textbf{Not Null}, Foreign Key (ukazuje, o aký typ produktu ide, napr. Iphone 17 Pro Max zánovný/nový atď)
+    \item \texttt{status : ENUM('Naskladneny', 'Predany', 'Pokazeny', 'V\_Procese\_Opravy')} - \textbf{Not Null} (stav tohto kusu)
+    \item \texttt{miesto\_naskladnenia : VARCHAR[255]} - \textbf{Not Null} (miesto v našom sklade, napr. regál a konkrétneho miesto na ňom, aby ho zamestnanci vedeli nájsť)
+    \item \texttt{datum\_nakupu : TIMESTAMP <<DF>>} - Default (timestamp kedy tento kus bol prijaty na sklad)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každý fyzický kus tovaru dostane vlastné unikátne id (umelý kľúč). Funguje to ako čiarový kód. Je to potrebné, lebo môžeme mať na sklade 10 rovnakých napr. mobilov, ale každý potrebujeme evidovať zvlášť (kvôli tomu, že môžu mať rôzny stav a môžu byť viackrát opravované).
+
+\textbf{Cudzie kľúče:}
+Tabuľka obsahuje jeden cudzí kľúč: \texttt{id\_produktu}, ktorý odkazuje na primárny kľúč v tabuľke \texttt{Produkt -> id}. Ukazuje, ku ktorému typu produktu (modelu v katalógu) tento kus patrí (napr. Google Pixel 10a zánovný, alebo Google Pixel 10a nový).
+
+
+
+\subsubsection{Produkt}
+\textbf{Účel v kontexte systému:}
+Tabuľka slúži ako katalóg produktov v našom e-shope. Nie je pre fyzické kusy, ale len ich typ (model), ktorý máme v predaji. Tieto záznamy sú viuzite napr. na webe nášho e-shopu pri zobrazovaní produktu.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{nazov : VARCHAR[255]} - \textbf{Not Null} (názov modelu, ktorý sa zobrazí na stránke)
+    \item \texttt{status : ENUM('Novy', 'Zanovny')} - \textbf{Not Null} (rozdeľuje produkty v katalógu na úplne nové a tie, ktoré predávame po oprave (zánovné))
+    \item \texttt{mnozstvo : INT <<CK>> CHECK(mnozstvo >= 0)} - \textbf{Not Null}, Check (aktuálny počet dostupných kusov tohto modelu na sklade. Ochrana databázy nedovolí znížiť množstvo tovaru až pod nulu aby nebolo možné predať tovar, ktorý nemáme)
+    \item \texttt{cena : DECIMAL(8, 2)} - \textbf{Not Null} (aktuálna cena, tiež bude zobrazená na webe)
+    \item \texttt{cena\_pri\_nakupe : DECIMAL(8, 2)} - (cena len pre účtovníkov, aby zme vedeli vypočítať koľko sme zarobili po predávaní kusu tovaru, nie je povinná)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každý produkt v katalógu dostane unikátne id (umelý kľúč). Je to lepšie ako použiť samotný názov produktu, lebo názov sa môže zmeniť. Taktiež môže byť produkt nový alebo zánovný, čo nechceme zobrazovať v názve a bez tohto stavu by boli uložené v systéme ako identické aj ak nie sú
+
+\textbf{Cudzie kľúče:}
+Táto tabuľka nemá žiadne cudzie kľúče.
+
+
+
+\subsubsection{Oprava}
+\textbf{Účel v kontexte systému:}
+Tabuľka slúži na zaznamenanie procesu opravy. Ak dostaneme napríklad pokazený mobil, tu presne zaznamenáme, kto ho má opraviť, ako rýchlo a kedy oprava bola začatá.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{id\_tovaru : INT <<FK>>} - \textbf{Not Null}, Foreign Key (ukazuje na fyzický kus tovaru, ktorý leží u opravara na stole)
+    \item \texttt{id\_opravara : INT <<FK>>} - \textbf{Not Null}, Foreign Key (ukazuje na zamestnanca, ktorý túto opravu dostal)
+    \item \texttt{priorita : ENUM('Standardna', 'Zrychlena')} - \textbf{Not Null} (ukazuje na to, či musí byť tovar opravený čo najrýchlejšie alebo má čakať v rade na opravu)
+    \item \texttt{datum\_prijatia : TIMESTAMP <<DF>>} - \textbf{Not Null}, Default (automaticky zaznamená presný čas kedy bolo zariadenie prijaté na opravu)
+    \item \texttt{datum\_ukoncenia : DATE} - (predpokladaný čas ukončenia opravy alebo aj dátum, kedy bola oprava reálne ukončená, nemusí byť zadaný od začiatku)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každá oprava dostane unikátne id (umelý kľúč). Je to nutné, lebo jedno zariadenie môže byť opravované viackrát a musíme zaznamenať každu takúto opravu.
+
+\textbf{Cudzie kľúče:}
+Tabuľka obsahuje dva cudzie kľúče. \texttt{id\_tovaru} odkazuje na primárny kľúč v tabuľke \texttt{Tovar -> id} (konkrétny pokazený kus). \texttt{id\_opravara} odkazuje na \texttt{Opravar -> id} (konkrétny opravár, ktorý to rieši).
+
+
+
+\subsubsection{Náhradný diel}
+\textbf{Účel v kontexte systému:}
+Tabuľka funguje ako sklad súčiastok. Keď opravár potrebuje napríklad novú batériu alebo displej pre pokazený mobil, systém skontroluje, či ju máme, koľko ich ešte zostalo a kde presne je naskladnena.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{nazov : VARCHAR[255]} - \textbf{Not Null} (ako sa súčiastka presne nazýva, napr. "Displej: Xiaomi 15T Pro Max Ultra 3D")
+    \item \texttt{mnozstvo : INT} - \textbf{Not Null} (koľko kusov tejto súčiastky aktuálne máme na sklade)
+    \item \texttt{cena : DECIMAL(8, 2)} - \textbf{Not Null} (koľko táto súčiastka stála, je to dôležité pre výpočet ceny celkovej opravy)
+    \item \texttt{miesto\_naskladnenia : VARCHAR[255]} - \textbf{Not Null} (presná poloha na sklade, napr. miesto na regále, aby ju opravár rýchlo našiel)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každý typ diela dostane svoje unikátne id (umelý kľúč). Ich názvy môžu byť dlhé alebo podobné, takže jednoduché číslo je najbezpečnejší a najrýchlejší spôsob, ako v systéme presne identifikovať konkrétny diel.
+
+\textbf{Cudzie kľúče:}
+Táto tabuľka nemá žiadne cudzie kľúče.
+
+
+
+\subsubsection{Opravár}
+\textbf{Účel v kontexte systému:}
+Tabuľka slúži na jednoduchú evidenciu zamestnancov, ktorí sú zodpovední za opravu tovarov. Funguje ako zoznam opravarov.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id : INT <<PK, AI>>} - \textbf{Not Null}, Primary Key, Auto Increment
+    \item \texttt{meno : VARCHAR[100]} - \textbf{Not Null} (meno zamestnanca (opravara), aby sme vedeli komu presne priradiť konkrétnu opravu)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Každý opravár dostane unikátne id (umelý kľúč). Používame id kvôli tomu, že môžme mať niekoľko opravárov s rovnakým menom a chceme mať pre každého unikátny záznam.
+
+\textbf{Cudzie kľúče:}
+Táto tabuľka nemá žiadne cudzie kľúče.
+
+
+
+\subsubsection{Objednávka\_Tovar}
+\textbf{Účel v kontexte systému:}
+Táto prepojovacia tabuľka spája objednávky s konkrétnymi kusmi tovaru zo skladu. Pomáha zistiť, ktoré konkrétne zariadenia (napríklad mobil s konkrétnym ID) boli priradené k tejto objednávke.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id\_objednavky : INT <<PK, FK>>} - \textbf{Not Null}, Primary Key, Foreign Key (ukazuje, ku ktorej objednávky tento tovar patrí)
+    \item \texttt{id\_tovaru : INT <<PK, FK>>} - \textbf{Not Null}, Primary Key, Foreign Key (ukazuje na konkrétny kus tovaru, ktorý zašleme v rámci tejto objednávky)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+Používame zložený primárny kľúč (kombinácia \texttt{id\_objednavky} a \texttt{id\_tovaru}). Bráni nás od toho, aby sme jednej objednávke nepriradili ten istý kus tovaru dvakrát. Lebo fyzický máme len jeden kus a ak tento kus chceme odoslať v rámci jednej objednávke dvakrát, tak dôjde k chybe.
+
+\textbf{Cudzie kľúče:}
+Tabuľka obsahuje dva cudzie kľúče. \texttt{id\_objednavky} odkazuje na tabuľku \texttt{Objednavka -> id}. Druhý kľúč \texttt{id\_tovaru} odkazuje na tabuľku \texttt{Tovar -> id}.
+
+
+
+\subsubsection{Oprava\_Diel}
+\textbf{Účel v kontexte systému:}
+Táto prepojovacia tabuľka slúži ako záznam o tom, koľko náhradných dielov bolo použito na konkrétnu opravu. Prepája opravu so skladom náhradných dielov. Zaznamenáva, aké súčiastky a v akom počte opravár použil na opravu zariadenia.
+
+\textbf{Atribúty a obmedzenia:}
+\begin{itemize}
+    \item \texttt{id\_opravy : INT <<PK, FK>>} - \textbf{Not Null}, Primary Key, Foreign Key (ukazuje, o ktorú opravu ide)
+    \item \texttt{id\_nahradneho\_diela : INT <<PK, FK>>} - \textbf{Not Null}, Primary Key, Foreign Key (ukazuje, ktorá konkrétna súčiastka bola použitá a už na sklade sa nenachádza)
+    \item \texttt{mnozstvo : INT <<CK>> CHECK(mnozstvo > 0)} - \textbf{Not Null}, Check (koľko kusov tejto súčiastky bolo použito, napr. 2 rovnaké skrutky. Databáza je chránená a nedovolí zadať nulu alebo záporné číslo)
+\end{itemize}
+ 
+\textbf{Voľba primárneho kľúča:}
+V tejto tabuľke nemáme jedno umelé id, ale používame zložený primárny kľúč (kombinácia \texttt{id\_opravy} a \texttt{id\_nahradneho\_diela}). Zabezpečuje to, že ten istý náhradný diel nemôžeme do jednej opravy zapísať omylom dvakrát ako dva samostatné záznamy. Ak majster použije viac kusov rovnakych diel, len bude zvýšená hodnota v poli množstvo.
+
+\textbf{Cudzie kľúče:}
+Tabuľka obsahuje dva cudzie kľúče. \texttt{id\_opravy} odkazuje na tabuľku \texttt{Oprava -> id}. Druhý kľúč \texttt{id\_nahradneho\_diela} odkazuje na tabuľku \texttt{Nahradny\_Diel -> id}.
+
 
 
 \newpage
@@ -618,6 +786,13 @@ For anything not covered here, the Overleaf documentation
     \includegraphics[width=0.8\textwidth]{../assets/priradenie_opravy_diagram}
     \caption{Diagram aktivity pre priradenie opravy ku opravárovi}
     \label{fig:oprava}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../assets/fyzicky_datovy_model.png}
+    \caption{Fizycky relačný model databázy nášho e-shopu}
+    \label{fig:physical_model}
 \end{figure}
 
 % You can control the image size with the width parameter:
