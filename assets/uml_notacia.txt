@@ -1,0 +1,128 @@
+@startuml
+
+hide circle
+skinparam linetype ortho
+
+entity "Zakaznik" {
+  * id : UUID  <<PK>>
+  --
+  * email : VARCHAR(255) <<UQ>>
+  tel_cislo : VARCHAR(15) <<UQ>>
+  meno : VARCHAR(100)
+  adresa : VARCHAR(255)
+}
+
+entity "Pracovnik" {
+  * id : UUID <<PK>>
+  --
+  * meno : VARCHAR(100)
+  * pozicia : ENUM('Podpora', 'Opravar', 'Manazer')
+}
+
+entity "Sprava" {
+  * id : UUID  <<PK>>
+  --
+  * id_zakaznika : UUID <<FK>>
+  id_pracovnika : UUID <<FK>>
+  * datum_vytvorenia : TIMESTAMP <<DF>>
+  * sprava : TEXT
+  * status : ENUM('Nova', 'Dokoncena') <<DF>> DEFAULT 'Nova'
+}
+
+entity "Objednavka" {
+  * id : UUID  <<PK>>
+  --
+  * id_zakaznika : UUID <<FK>>
+  * datum_vytvorenia : TIMESTAMP <<DF>>
+  * adresa_dorucenia : VARCHAR(255)
+  * status : ENUM('Vytvorena', 'Zrusena', 'Dokoncena') <<DF>> DEFAULT 'Vytvorena'
+}
+
+
+
+
+entity "Produkt" {
+  * id : UUID  <<PK>>
+  --
+  * nazov : VARCHAR(255)
+  * status : ENUM('Novy', 'Zanovny')
+  * mnozstvo : INT <<CK>> CHECK(mnozstvo >= 0)
+  * cena : DECIMAL(8, 2)
+  cena_pri_nakupe : DECIMAL(8, 2)
+}
+
+entity "Tovar" {
+  * id : UUID  <<PK>>
+  --
+  * id_produktu : UUID <<FK>>
+  * status : ENUM('Naskladneny', 'Predany', 'Pokazeny', 'V_Procese_Opravy')
+  * miesto_naskladnenia : VARCHAR(255)
+  datum_nakupu : TIMESTAMP <<DF>>
+}
+
+
+
+
+entity "Oprava" {
+  * id : UUID  <<PK>>
+  --
+  * id_tovaru : UUID <<FK>>
+  * id_opravara : UUID <<FK>>
+  * priorita : ENUM('Standardna', 'Zrychlena')
+  * datum_prijatia : TIMESTAMP <<DF>>
+  datum_ukoncenia : DATE
+}
+
+entity "Nahradny_Diel" {
+  * id : UUID  <<PK>>
+  --
+  * nazov : VARCHAR(255)
+  * mnozstvo : INT
+  * cena : DECIMAL(8, 2)
+  * miesto_naskladnenia : VARCHAR(255)
+}
+
+entity "Poziadavka_Na_Diely" {
+  * id : UUID <<PK>>
+  --
+  * id_diel : UUID <<FK>>
+  * id_opravy : UUID <<FK>>
+  * mnozstvo : INT <<CK>> CHECK(mnozstvo > 0)
+}
+
+
+
+
+entity "Objednavka_Tovar" {
+  * id_objednavky : UUID  <<PK, FK>>
+  * id_tovaru : UUID <<PK, FK>>
+}
+
+entity "Oprava_Diel" {
+  * id_opravy : UUID <<PK, FK>>
+  * id_nahradneho_diela : UUID <<PK, FK>>
+  --
+  * mnozstvo : INT <<CK>> CHECK(mnozstvo > 0)
+}
+
+
+
+
+
+
+"Zakaznik" "1" -- "0...*" "Objednavka"
+"Zakaznik" "1" -- "0...*" "Sprava"
+"Sprava" "0...*" -- "1" "Pracovnik"
+
+"Objednavka" "1" -- "1...*" "Objednavka_Tovar"
+"Objednavka_Tovar" "0...*" -- "1" "Tovar"
+
+"Tovar" "0...*" -- "1" "Produkt"
+"Tovar" "1" -- "0...*" "Oprava"
+"Oprava" "0...*" -- "1" "Pracovnik"
+
+"Oprava" "1" -- "1...*" "Oprava_Diel"
+"Oprava" "1" -- "0...*" "Poziadavka_Na_Diely"
+"Oprava_Diel" "0...*" -- "1" "Nahradny_Diel"
+
+@enduml
