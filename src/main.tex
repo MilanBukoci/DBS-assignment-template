@@ -413,9 +413,9 @@ Počas realizácie scenára prebiehajú nasledujúce operácie nad databázou:
 \textbf{A1 - Nedostatočné množstvo na sklade}
 
 \begin{enumerate}
-    \item Systém pri kontrole dostupnosti zistí, že požadované množstvo produktu nie je dostupné.
-    \item Systém informuje zákazníka o nedostupnosti produktu.
-    \item Zákazník môže:
+    \item (2.1) Systém pri kontrole dostupnosti zistí, že požadované množstvo produktu nie je dostupné.
+    \item (2.2) Systém informuje zákazníka o nedostupnosti produktu.
+    \item (2.3) Zákazník môže:
     \begin{itemize}
         \item znížiť požadované množstvo produktu,
         \item odstrániť produkt z objednávky,
@@ -426,14 +426,14 @@ Počas realizácie scenára prebiehajú nasledujúce operácie nad databázou:
 \noindent \textbf{A2 - Neplatná doručovacia adresa}
 
 \begin{enumerate}
-    \item Zákazník zadá neúplnú alebo neplatnú adresu.
-    \item Systém zobrazí upozornenie a vyzve zákazníka na opravu údajov.
-    \item Proces vytvorenia objednávky pokračuje po opravení údajov.
+    \item (5.1) Zákazník zadá neúplnú alebo neplatnú adresu.
+    \item (5.2) Systém zobrazí upozornenie a vyzve zákazníka na opravu údajov.
+    \item (5.3) Proces vytvorenia objednávky pokračuje po opravení údajov.
 \end{enumerate}
 
 \subsection*{Podporný UML diagram}
 
-Pre tento scenár je najvhodnejší \textbf{sekvenčný diagram (Sequence Diagram)}, ako je ukázané vo Figure~\ref{fig:objednavka}.
+Pre tento scenár je najvhodnejší \textbf{sekvenčný diagram (Sequence Diagram)}, ako je ukázané na obrázku~\ref{fig:objednavka}.
 
 \noindent Sekvenčný diagram umožňuje znázorniť:
 
@@ -493,23 +493,21 @@ Pri realizácii scenára systém vykonáva nasledujúce operácie nad databázou
 \textbf{A1 – Produkt nie je v stave pokazený}
 
 \begin{enumerate}
-    \item Administrátor vyberie produkt.
-    \item Systém zistí, že stav produktu nie je „pokazený“.
-    \item Systém zobrazí upozornenie.
-    \item Administrátor musí vybrať iný produkt.
+    \item (4.1) Systém zistí, že stav produktu nie je „pokazený“.
+    \item (4.2) Systém zobrazí upozornenie.
+    \item (4.3) Administrátor musí vybrať iný produkt.
 \end{enumerate}
 
 \noindent \textbf{A2 - Opravár nie je dostupný}
 
 \begin{enumerate}
-    \item Administrátor sa pokúsi priradiť opravára.
-    \item Zvolený opravár má už maximálny počet pridelených opráv.
-    \item Administrátor musí vybrať iného opravára.
+    \item (5.1) Zvolený opravár má už maximálny počet pridelených opráv.
+    \item (5.2) Administrátor musí vybrať iného opravára.
 \end{enumerate}
 
 \subsection*{Podporný UML diagram}
 
-Pre tento scenár je vhodný \textbf{diagram aktivít (Activity Diagram)}, ako je ukázané vo Figure~\ref{fig:oprava}.
+Pre tento scenár je vhodný \textbf{diagram aktivít (Activity Diagram)}, ako je ukázané na obrázku~\ref{fig:oprava}.
 
 \noindent Diagram aktivít umožňuje znázorniť:
 
@@ -537,7 +535,7 @@ Opravár si vyberie produkt na opravu, ktorý je priradený konkrétne jemu. Pot
 
 \subsection*{Výstupné podmienky}
 \begin{itemize}
-    \item Konkrétny tovar je opravený, naskladneny a súvisiace s ním záznamy sú aktualizované
+    \item Konkrétny tovar je opravený, naskladnený a záznamy súvisiace s ním sú aktualizované
     \item Záznam o oprave je aktualizovaný a má vyplnený dátum ukončenia
     \item Množstvo použitých náhradných dielov je zaznamenané a súvisiace záznamy sú aktualizované
 \end{itemize}
@@ -551,8 +549,8 @@ Opravár si vyberie produkt na opravu, ktorý je priradený konkrétne jemu. Pot
     \item Systém zobrazí všetky dostupné diely na sklade a údaje o nich
     \item Opravár skontroluje, či sú potrebné diely na sklade, a zarezervuje si ich
     \item Opravár si fyzicky zoberie diely a vykoná opravu
-    \item Po skončení opravy opravár zadá dátum ukončenia a označí ju ako hotovú
-    \item Systém zmení stav tovaru na "Naskladneny" a zmení jeho \textbf{id\_produktu} na rovnaký model, ale so statusom "Zanovny"
+    \item Po skončení opravy, opravár zadá dátum ukončenia a označí ju ako hotovú
+    \item Systém zmení stav tovaru na "Naskladnený" a zmení jeho \textbf{id\_produktu} na rovnaký model, ale so statusom "Opravený"
 \end{enumerate}
 
 \subsection*{Čo sa deje na dátovej vrstve:}
@@ -561,28 +559,28 @@ Opravár si vyberie produkt na opravu, ktorý je priradený konkrétne jemu. Pot
     \item Načítanie jedného konkrétneho záznamu z tabuľky Oprava
     \item Systém načíta všetky záznamy z tabuľky \textbf{Nahradny\_Diel}
     \item Pridanie nových záznamov do prepojovacej tabuľky \textbf{Oprava\_Diel}
-    \item Aktualizácia atribútu mnozstvo v tabuľke \textbf{Nahradny\_Diel}
+    \item Aktualizácia atribútu množstvo v tabuľke \textbf{Nahradny\_Diel}
     \item Aktualizácia atribútu \textbf{datum\_ukoncenia} v zázname tejto opravy v tabuľke Oprava
-    \item Systém automaticky upraví záznam v tabuľke Tovar (zmeny atribút status na 'Naskladneny', FK \textbf{id\_produktu} zmeny na FK zodpovedajúci tomu istému produktu len zo statusom 'Zanovny')
+    \item Systém automaticky upraví záznam v tabuľke Tovar (zmení atribút status na 'Naskladnený', FK \textbf{id\_produktu} zmení na FK zodpovedajúci tomu istému produktu len so statusom 'Opravený')
 \end{enumerate}
 
 \subsection*{Alternatívny tok}
 \textbf{A1 - Nedostatok náhradných dielov}
 \begin{enumerate}
     \item (5.1) Opravár zistí, že na sklade nie je dostatočné množstvo potrebných dielov
-    \item (5.2) Opravár odošle požiadavku manažérovi na objednanie týchto dielov
+    \item (5.2) Opravár odošle požiadavku administrátorovi na objednanie týchto dielov
     \item (5.3) Oprava sa zastaví, kým potrebné diely neprídu na sklad
     \item (5.4) Späť na krok 2
 \end{enumerate}
 
 \subsection*{Podporný UML diagram}
-Pre tento scenár je vhodný diagram aktivít kvôli tomu, že primárne chceme vidieť postupnosť krokov a rozhodnutie, ktoré ovplyvní výsledok procesu. Taktiež jasné znázorňuje aj logiku celého procesu od začiatku až po zmenu stavu tovaru (pri úspešnom ukončení). Diagram je na obrázku ~\ref{fig:oprava_tovaru}.
+Pre tento scenár je vhodný diagram aktivít kvôli tomu, že primárne chceme vidieť postupnosť krokov a rozhodnutie, ktoré ovplyvní výsledok procesu. Taktiež jasne znázorňuje aj logiku celého procesu od začiatku až po zmenu stavu tovaru (pri úspešnom ukončení). Diagram je na obrázku ~\ref{fig:oprava_tovaru}.
 
-\textbf{Diagram aktivít pre tento UC znázorňuje:}
+\noindent \textbf{Diagram aktivít pre tento UC znázorňuje:}
 \begin{itemize}
     \item Postup jednotlivých fyzických a systémových krokov procesu opravy
     \item Rozhodovací bod (kontrola dostupnosti náhradných dielov na sklade)
-    \item Alternatívny tok procesu v prípade nedostatku dielov (odoslanie požiadavky manažérovi)
+    \item Alternatívny tok procesu v prípade nedostatku dielov (odoslanie požiadavky Administrátorovi)
 \end{itemize}
 
 
@@ -599,14 +597,14 @@ Zákazník napíše správu pre podporu. Pracovník podpory si ju prečíta, v p
 \subsection*{Vstupné podmienky}
 \begin{itemize}
     \item Zákazník je prihlásený do systému
-    \item Zákazník má správne spravený účet (má zadaný email)
+    \item Zákazník má správne vytvorený účet (má zadaný email)
 \end{itemize}
 
 \subsection*{Výstupné podmienky}
 \begin{itemize}
     \item Zákazník dostal odpoveď na email
-    \item Údaje v objednávke boli upravené a uložené (ak toto bolo žiadané)
-    \item Status správy je 'Dokoncena'
+    \item Údaje v objednávke boli upravené a uložené (ak to bolo žiadané)
+    \item Status správy je 'Dokončená'
 \end{itemize}
 
 \subsection*{Hlavný tok scenára}
@@ -617,20 +615,20 @@ Zákazník napíše správu pre podporu. Pracovník podpory si ju prečíta, v p
     \item Systém uloží novú správu pre podporu do databázy
     \item Pracovník podpory si vyberie nevyriešenú správu zo zoznamu
     \item Pracovník podpory vytvorí odpoveď a odošle ju zákazníkovi na email, ktorý je priradený k jeho účtu
-    \item Pracovník podpory označí správu ako 'Dokoncena'
+    \item Pracovník podpory označí správu ako 'Dokončená'
 \end{enumerate}
 
 \subsection*{Čo sa deje na dátovej vrstve:}
 \begin{enumerate}
     \item Vytvorenie nového záznamu v tabuľke \textbf{Sprava}
-    \item Načítanie všetkých záznamov z tabuľky \textbf{Sprava} so statusom 'Nova'
+    \item Načítanie všetkých záznamov z tabuľky \textbf{Sprava} so statusom 'Nová'
     \item Načítanie jedného konkrétneho záznamu z tabuľky \textbf{Sprava}
     \item Načítanie hodnoty atribútu \textbf{email} z tabuľky \textbf{Zakaznik} (pomocou FK \textbf{id\_zakaznika})
-    \item Aktualizácia záznamu v tabuľke Sprava (zmena statusu na 'Dokoncena')
+    \item Aktualizácia záznamu v tabuľke Sprava (zmena statusu na 'Dokončená')
 \end{enumerate}
 
 \subsection*{Alternatívny tok}
-\textbf{A1 - Zákazník žiada úpravu dáta objednávky}
+\textbf{A1 - Zákazník žiada úpravu údajov objednávky}
 \begin{enumerate}
     \item (5.1) Pracovník podpory zvolí možnosť zobrazenia objednávok zákazníka, ktorý správu odoslal
     \item (5.2) Pracovník podpory vyberie konkrétnu objednávku
@@ -647,15 +645,12 @@ Zákazník napíše správu pre podporu. Pracovník podpory si ju prečíta, v p
 \subsection*{Podporný UML diagram}
 Pre tento scenár som sa rozhodol použiť sekvenčný diagram a to s dôvodu možnosti znázornenia komunikácie s databázou a podrobného prehľadu časovej sekvencie krokov scenáru. Diagram je na obrázku ~\ref{fig:komunikacia_s_podporou}.
 
-\textbf{Sekvenčný diagram znázorňuje:}
+\noindent \textbf{Sekvenčný diagram znázorňuje:}
 \begin{itemize}
     \item Časovú postupnosť komunikácie medzi aktérmi (Zákazník, Pracovník podpory) a systémovými vrstvami (Systém, Databáza)
     \item Presné volania do databázy a prácu s dátami (operácie SELECT, INSERT, UPDATE)
     \item Alternatívny tok procesu (zobrazenie a úprava objednávky)
 \end{itemize}
-
-
-
 
 
 
@@ -674,7 +669,7 @@ V každej z tabuliek sú uvedené všetky potrebné atribúty. Not Null sú ozna
 \textbf{Účel v kontexte systému:}
 Tabuľka obsahuje záznamy všetkých používateľov systému. Slúži na ukladanie ich údajov, ktoré sú neskôr potrebné na spracovanie objednávky alebo na zaslanie správy podpore.
 
-\textbf{Atribúty a obmedzenia:}
+\noindent \textbf{Atribúty a obmedzenia:}
 \begin{itemize}
     \item \texttt{id : UUID  <<PK>>} - \textbf{Not Null}, Primary Key
     \item \texttt{email : VARCHAR(254) <<UQ>>} - \textbf{Not Null}, Unique (každý zákazník musí mať unikátny email, na jeden môže byť zaregistrovaný iba jeden účet)
@@ -683,10 +678,10 @@ Tabuľka obsahuje záznamy všetkých používateľov systému. Slúži na uklad
     \item \texttt{adresa : VARCHAR(255)} - (tiež je len pre pohodlie zákazníka, ak ho zadá - bude automaticky zadávaný do objednávky)
 \end{itemize}
  
-\textbf{Voľba primárneho kľúča:}
-Každý zákazník dostane pri registrácii unikatné id (umelý kľúč). To je potrebné, aby mohol potom meniť všetky ostatné údaje a účet zostal rovnaký.
+\noindent \textbf{Voľba primárneho kľúča:}
+Každý zákazník dostane pri registrácii unikatné id (umelý kľúč). To je potrebné na to, aby mohol zákazník meniť všetky ostatné údaje a účet zostal rovnaký.
 
-\textbf{Cudzie kľúče:}
+\noindent \textbf{Cudzie kľúče:}
 Táto tabuľka nemá cudzie kľúče.
 
 
@@ -695,7 +690,7 @@ Táto tabuľka nemá cudzie kľúče.
 \textbf{Účel v kontexte systému:}
 Tabuľka slúži na evidenciu zamestnancov. Obsahuje všetky pracovné pozície (podpora, opravári, manažéri) v jednej tabuľke.
 
-\textbf{Atribúty a obmedzenia:}
+\noindent \textbf{Atribúty a obmedzenia:}
 \begin{itemize}
     \item \texttt{id : UUID <<PK>>} - \textbf{Not Null}, Primary Key
     \item \texttt{meno : VARCHAR(100)} - \textbf{Not Null} (meno zamestnanca)
@@ -966,9 +961,6 @@ Náš pracovný proces prebiehal postupne. Najskôr sme vytvorili špecifikáciu
 Pri tvorbe dokumentácie sme využili aj nástroje umelej inteligencie. Konkrétne sme ich použili na úpravu textu dokumentácie, opravu gramatických chýb a zlepšenie formátovania a štylistiky textu. Výsledný text sme však vždy manuálne skontrolovali a upravili tak, aby presne zodpovedal nášmu riešeniu.
 
 Rámcovú tému e-shopu sme si zvolili preto, že naše pôvodné návrhy tém už boli obsadené. E-shop však predstavuje rozsiahlu a flexibilnú tému, ktorá umožňuje modelovať rôzne procesy a entity. Zároveň poskytuje dostatočný priestor na návrh realistického dátového modelu.
-
-For anything not covered here, the Overleaf documentation
-\cite{overleaf-docs} is an excellent reference.
 
 % ─── Bibliography ────────────────────────────────────────────────────────────
 % \printbibliography
