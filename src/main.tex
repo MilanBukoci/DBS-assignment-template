@@ -522,13 +522,12 @@ Pre tento scenár je vhodný \textbf{diagram aktivít (Activity Diagram)}, ako j
 \noindent Diagram jasne znázorňuje logiku procesu priraďovania opravy a rozhodovacie podmienky v systéme.
 
 
-
 \subsection{Oprava tovaru}
 \subsection*{Aktér}
 Opravár
 
 \subsection*{Stručný popis}
-Opravár si vyberie opravu (jednu s priradených konkrétne jemu). Potom zistí, ktoré náhradné diely potrebuje a zoberie si ich zo skladu. Potom tovar opraví a vráti ho na sklad. Po oprave údaje o konkrétnom tovare budú aktualizované a uložené do súvisiacich tabuliek.
+Opravár si vyberie produkt na opravu, ktorý je priradený konkrétne jemu. Potom zistí, ktoré náhradné diely potrebuje a zoberie si ich zo skladu. Následne tovar opraví a vráti ho do skladu. Údaje o konkrétnom tovare budú po oprave aktualizované a uložené do súvisiacich tabuliek.
 
 \subsection*{Vstupné podmienky}
 \begin{itemize}
@@ -950,21 +949,29 @@ Integritné obmedzenia z predchádzajúcich kapitol sú zabezpečené priamo na 
 \end{itemize}
 
 
-
 \newpage
 \section{Zhodnotenie}
 \label{sec:zhodnotenie}
 
-The template meets the requirements from Section~\ref{sec:analysis}.
-It compiles with a standard \LaTeX{} distribution, supports two
-languages, and provides working examples of every feature students
-are likely to need.
+Najviac času nám zabrala tvorba samotného relačného modelu databázy. Pri jeho návrhu bolo potrebné správne identifikovať entity, ich atribúty a najmä vzťahy medzi nimi tak, aby model správne reprezentoval fungovanie navrhovaného systému. Zároveň bolo potrebné dbať na logickú štruktúru modelu a vyhnúť sa zbytočnej redundancii dát.
+
+Na začiatku práce sme mali najväčší problém s presným zameraním nášho e-shopu a s celkovým konceptom riešenia. Nebolo úplne jasné, aké funkcionality má systém pokrývať a aké entity budú potrebné. Tento problém sme vyriešili postupným spresňovaním špecifikácie systému a diskusiou o jednotlivých scenároch používania, čo nám pomohlo lepšie pochopiť riešeniu.
+
+Pre nás bola úplne novou skúsenosťou tvorba relačného modelu databázy. Pri jeho návrhu sme sa museli naučiť správne identifikovať primárne a cudzie kľúče, ako aj vhodne modelovať vzťahy medzi tabuľkami.
+
+Navrhnuté riešenie podľa nášho názoru pokrýva zvolenú tému v dostatočnej miere. Počas návrhu sme však niektoré časti zjednodušili. Na začiatku sme napríklad uvažovali o samostatnej tabuľke pre každého aktéra systému (administrátor, opravár a technická podpora). Neskôr sme sa rozhodli tento návrh zjednodušiť a vytvoriť jednu spoločnú tabuľku pracovník, v ktorej je každému pracovníkovi priradená konkrétna rola.
+
+Náš pracovný proces prebiehal postupne. Najskôr sme vytvorili špecifikáciu systému, ktorá definovala základné požiadavky a aktérov systému. Následne sme pripravili používateľské scenáre, ktoré nám pomohli lepšie pochopiť interakciu používateľov so systémom. Na základe týchto scenárov sme navrhli relačný model databázy a na záver sme spracovali zhodnotenie celého riešenia.
+
+Pri tvorbe dokumentácie sme využili aj nástroje umelej inteligencie. Konkrétne sme ich použili na úpravu textu dokumentácie, opravu gramatických chýb a zlepšenie formátovania a štylistiky textu. Výsledný text sme však vždy manuálne skontrolovali a upravili tak, aby presne zodpovedal nášmu riešeniu.
+
+Rámcovú tému e-shopu sme si zvolili preto, že naše pôvodné návrhy tém už boli obsadené. E-shop však predstavuje rozsiahlu a flexibilnú tému, ktorá umožňuje modelovať rôzne procesy a entity. Zároveň poskytuje dostatočný priestor na návrh realistického dátového modelu.
 
 For anything not covered here, the Overleaf documentation
 \cite{overleaf-docs} is an excellent reference.
 
 % ─── Bibliography ────────────────────────────────────────────────────────────
-\printbibliography
+% \printbibliography
 
 % ─── Attachments ─────────────────────────────────────────────────────────────
 \newpage
@@ -988,14 +995,14 @@ For anything not covered here, the Overleaf documentation
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{../assets/vytvorenie_objednavky_diagram}
-    \caption{Sekvenčný diagram pre vytvorenie objednávky}
+    \caption{Sekvenčný diagram pre Use Case - Vytvorenie objednávky zákazníkom}
     \label{fig:objednavka}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{../assets/priradenie_opravy_diagram}
-    \caption{Diagram aktivity pre priradenie opravy ku opravárovi}
+    \caption{Diagram aktivity pre Use Case - Pridelenie pokazeného produktu na opravu}
     \label{fig:oprava}
 \end{figure}
 
@@ -1016,7 +1023,7 @@ For anything not covered here, the Overleaf documentation
 \begin{figure}[H]
     \centering
     \includegraphics[width=1.0\textwidth]{../assets/fyzicky_datovy_model.png}
-    \caption{Fizycky relačný model databázy nášho e-shopu}
+    \caption{Fyzický relačný model databázy nášho e-shopu}
     \label{fig:physical_model}
 \end{figure}
 
