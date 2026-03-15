@@ -846,7 +846,7 @@ Tabuľka slúži na zaznamenanie procesu opravy. Ak dostaneme napríklad pokazen
     \item \texttt{id\_opravara : UUID <<FK>>} - \textbf{Not Null}, Foreign Key (ukazuje na zamestnanca, ktorý túto opravu dostal)
     \item \texttt{priorita : ENUM('Standardna', 'Zrychlena')} - \textbf{Not Null} (ukazuje na to, či musí byť tovar opravený čo najrýchlejšie alebo má čakať v rade na opravu)
     \item \texttt{datum\_prijatia : TIMESTAMP <<DF>>} - \textbf{Not Null}, Default (automaticky zaznamená presný čas kedy bolo zariadenie prijaté na opravu)
-    \item \texttt{datum\_ukoncenia : DATE} - (predpokladaný čas ukončenia opravy alebo aj dátum, kedy bola oprava reálne ukončená, nemusí byť zadaný od začiatku)
+    \item \texttt{datum\_ukoncenia : DATE} - (dátum, kedy bola oprava reálne ukončená (zadáva ho opravár), nie je zadávaný od začiatku, takže môže byť NULL)
 \end{itemize}
  
 \noindent \textbf{Voľba primárneho kľúča:}
@@ -864,9 +864,9 @@ Tabuľka funguje ako sklad súčiastok. Keď opravár potrebuje napríklad novú
 \noindent \textbf{Atribúty a obmedzenia:}
 \begin{itemize}
     \item \texttt{id : UUID  <<PK>>} - \textbf{Not Null}, Primary Key
-    \item \texttt{nazov : VARCHAR(255)} - \textbf{Not Null} (ako sa súčiastka presne nazýva, napr. \uv{Displej: Xiaomi 15T Pro Max Ultra 3D})
-    \item \texttt{mnozstvo : INT} - \textbf{Not Null} (koľko kusov tejto súčiastky aktuálne máme na sklade)
-    \item \texttt{cena : DECIMAL(8, 2)} - \textbf{Not Null} (koľko táto súčiastka stála, je to dôležité pre výpočet ceny celkovej opravy)
+    \item \texttt{nazov : VARCHAR(255)} - \textbf{Not Null} (ako sa diel presne nazýva, napr. \uv{Displej: Xiaomi 15T Pro Max Ultra 3D})
+    \item \texttt{mnozstvo : INT} - \textbf{Not Null} (koľko kusov tohto dielu aktuálne máme na sklade)
+    \item \texttt{cena : DECIMAL(8, 2)} - \textbf{Not Null} (koľko tento diel stál, je to dôležité pre výpočet ceny celkovej opravy)
     \item \texttt{miesto\_naskladnenia : VARCHAR(255)} - \textbf{Not Null} (presná poloha na sklade, napr. miesto na regále, aby ju opravár rýchlo našiel)
 \end{itemize}
  
