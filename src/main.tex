@@ -223,15 +223,29 @@ Evidované údaje:
     \item názov,
     \item nákupná cena,
     \item predajná cena,
-    \item stav (nový, pokazený, opravovaný, opravený),
-    \item lokalita v sklade,
-    \item dátum nákupu,
+    \item stav (nový, opravený),
     \item počet kusov na sklade.
 \end{itemize}
 
 \subsection*{Dôležitosť}
 
-Produkt je centrálna entita systému – predstavuje predmet predaja aj opravy.
+Predstavuje abstraktný model zariadenia v katalógu e-shopu, ktorý si zákazník prezerá. Nie je konkrétny fyzický kus.
+
+\subsubsection{Tovar}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor tovaru,
+    \item identifikátor produktu,
+    \item fyzický stav (naskladnený, predaný, pokazený, opravovaný),
+    \item lokalita v sklade,
+    \item dátum nákupu.
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Predstavuje konkrétny fyzický kus produktu (unikátne zariadenie), ktorý sa predáva, bol predaný, je pokazený a čaká na opravu, alebo sa momentálne opravuje.
 
 \subsubsection{Zákazník}
 
@@ -249,6 +263,20 @@ Evidované údaje:
 
 Umožňuje evidenciu objednávok, komunikácie a histórie nákupov.
 
+\subsubsection{Pracovník}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor pracovníka,
+    \item meno a priezvisko,
+    \item pracovná pozícia (technická podpora, opravár, administrátor)
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Obsahuje údaje všetkých zamestnancov a taktiež ukladá aj ich rolu v systéme.
+
 \subsubsection{Objednávka}
 
 Evidované údaje:
@@ -258,7 +286,7 @@ Evidované údaje:
     \item zákazník,
     \item dátum vytvorenia,
     \item adresa doručenia,
-    \item stav objednávky (vytvorená, potvrdená, odoslaná, zrušená),
+    \item stav objednávky (vytvorená, zrušená, dokončená),
     \item zoznam položiek (produkt + množstvo).
 \end{itemize}
 
@@ -282,13 +310,29 @@ Evidované údaje:
 
 Zabezpečuje evidenciu komunikácie a riešenie problémov.
 
+\subsubsection{Náhradný diel}
+
+Evidované údaje:
+
+\begin{itemize}
+    \item identifikátor dielu,
+    \item názov dielu,
+    \item cena,
+    \item dostupné množstvo,
+    \item lokalita na sklade.
+\end{itemize}
+
+\subsection*{Dôležitosť}
+
+Slúži na evidenciu náhradných dielov potrebných pre opravu pokazených zariadení.
+
 \subsubsection{Oprava}
 
 Evidované údaje:
 
 \begin{itemize}
     \item identifikátor opravy,
-    \item produkt,
+    \item tovar,
     \item opravár,
     \item dátum prijatia na opravu,
     \item priorita (štandardná / zrýchlená),
@@ -1000,14 +1044,14 @@ Rámcovú tému e-shopu sme si zvolili preto, že naše pôvodné návrhy tém u
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{../assets/oprava_tovaru.png}
-    \caption{Diagram aktivity pre Use Case - Oprava tovaru}
+    \caption{Diagram aktivity pre Use Case - \uv{Oprava tovaru}}
     \label{fig:oprava_tovaru}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{../assets/komunikacia_s_podporou.png}
-    \caption{Sekvenčný diagram pre Use Case - Komunikácia s podporou}
+    \caption{Sekvenčný diagram pre Use Case - \uv{Komunikácia s podporou}}
     \label{fig:komunikacia_s_podporou}
 \end{figure}
 
