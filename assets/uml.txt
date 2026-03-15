@@ -6,7 +6,7 @@ skinparam linetype ortho
 entity "Zakaznik" {
   * id : UUID  <<PK>>
   --
-  * email : VARCHAR(255) <<UQ>>
+  * email : VARCHAR(254) <<UQ>>
   tel_cislo : VARCHAR(15) <<UQ>>
   meno : VARCHAR(100)
   adresa : VARCHAR(255)
@@ -16,7 +16,7 @@ entity "Pracovnik" {
   * id : UUID <<PK>>
   --
   * meno : VARCHAR(100)
-  * pozicia : ENUM('Podpora', 'Opravar', 'Manazer')
+  * pozicia : ENUM('Podpora', 'Opravar', 'Administrator')
 }
 
 entity "Sprava" {
@@ -45,7 +45,7 @@ entity "Produkt" {
   * id : UUID  <<PK>>
   --
   * nazov : VARCHAR(255)
-  * status : ENUM('Novy', 'Zanovny')
+  * status : ENUM('Novy', 'Opraveny')
   * mnozstvo : INT <<CK>> CHECK(mnozstvo >= 0)
   * cena : DECIMAL(8, 2)
   cena_pri_nakupe : DECIMAL(8, 2)
@@ -55,7 +55,7 @@ entity "Tovar" {
   * id : UUID  <<PK>>
   --
   * id_produktu : UUID <<FK>>
-  * status : ENUM('Naskladneny', 'Predany', 'Pokazeny', 'V_Procese_Opravy')
+  * status : ENUM('Naskladneny', 'Predany', 'Pokazeny', 'Opravovany')
   * miesto_naskladnenia : VARCHAR(255)
   datum_nakupu : TIMESTAMP <<DF>>
 }
@@ -108,8 +108,6 @@ entity "Oprava_Diel" {
 
 
 
-
-
 "Zakaznik" "1" -- "0...*" "Objednavka"
 "Zakaznik" "1" -- "0...*" "Sprava"
 "Sprava" "0...*" -- "1" "Pracovnik"
@@ -124,5 +122,6 @@ entity "Oprava_Diel" {
 "Oprava" "1" -- "1...*" "Oprava_Diel"
 "Oprava" "1" -- "0...*" "Poziadavka_Na_Diely"
 "Oprava_Diel" "0...*" -- "1" "Nahradny_Diel"
+"Poziadavka_Na_Diely" "0...*" -- "1" "Nahradny_Diel"
 
 @enduml
