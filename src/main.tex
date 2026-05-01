@@ -122,8 +122,10 @@ Do modelu boli pridané CHECK constraints, ktoré v prvej verzii chýbali:
     \item Logická kontrola, aby platba patrila buď objednávke, alebo oprave, nikdy nie obom súčasne.
 \end{itemize}
 
-\newpage
+\clearpage % Toto ukončí stranu
+
 \subsection*{Ďalšie zmeny v tabuľkách}
+
 \begin{table}[h]
 \renewcommand{\arraystretch}{1.5} % Zväčší rozostupy medzi riadkami pre lepšiu čitateľnosť
 \centering
@@ -147,9 +149,8 @@ Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integrit
 \label{tab:zmeny_modelu}
 \end{table}
 
+\clearpage
 
-\newpage
-\newpage
 \section{Fyzický model - implementácia}
 \label{sec:model}
 
