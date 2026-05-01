@@ -101,15 +101,15 @@ Dátový model prešiel výraznou optimalizáciou a rozšírením. Cieľom zmien
 \begin{itemize}
     \item \textbf{Zmena dátových typov primárnych kľúčov:} Pôvodne navrhované UUID boli nahradené typom SERIAL (INTEGER). Dôvodom je lepšia čitateľnosť pri manuálnom testovaní dopytov a vyššia efektivita indexovania v rámci školského projektu.
     \item \textbf{Zavedenie ENUM typov:} Pevné textové reťazce (statusy) boli nahradené systémovými ENUM typmi. Tým sa eliminovalo riziko preklepov a zabezpečilo sa, že stavy (objednávok, opráv, tovaru) môžu nadobúdať len vopred definované hodnoty.
-    \item \textbf{Rozbitie M:N vzťahu v objednávkach:} Pôvodná tabuľka Objednavka\_Tovar bola transformovaná na Objednavka\_Polozka. Pridaný bol stĺpec jednotkova\_cena, aby sme zachovali historickú cenu v čase nákupu (nezávisle od aktuálnej ceny v katalógu) a stĺpec id\_tovaru, ktorý umožňuje priradiť k objednávke konkrétny unikátny kus (napr. konkrétny repasovaný mobil so sériovým číslom).
+    \item \textbf{Rozbitie M:N vzťahu v objednávkach:} Pôvodná tabuľka \texttt{Objednavka\_Tovar} bola transformovaná na \texttt{Objednavka\_Polozka}. Pridaný bol stĺpec \texttt{jednotkova\_cena}, aby sme zachovali historickú cenu v čase nákupu (nezávisle od aktuálnej ceny v katalógu) a stĺpec \texttt{id\_tovaru}, ktorý umožňuje priradiť k objednávke konkrétny unikátny kus (napr. konkrétny repasovaný mobil so sériovým číslom).
 \end{itemize}
 
 
 \subsection{Rozšírenie biznis logiky}
 
 \begin{itemize}
-    \item \textbf{Finančný modul:} Boli pridané tabuľky Platba (rieši smer peňazí cez typ\_transakcie – Príjem/Výdavok) a Faktura (daňový doklad s väzbou 1:1 na úspešnú platbu).
-    \item \textbf{Komunikačný modul:} Tabuľka správ bola rozšírená o stĺpec odpoved\_na\_id (Self-Join). To umožňuje reťazenie správ do vlákien (threads), čo je kľúčové pre technickú podporu.
+    \item \textbf{Finančný modul:} Boli pridané tabuľky Platba (rieši smer peňazí cez \texttt{typ\_transakcie| — Príjem/Výdavok) a Faktura (daňový doklad s väzbou 1:1 na úspešnú platbu).
+    \item \textbf{Komunikačný modul:} Tabuľka správ bola rozšírená o stĺpec \texttt{odpoved\_na\_id} (Self-Join). To umožňuje reťazenie správ do vlákien (threads), čo je kľúčové pre technickú podporu.
 \end{itemize}
 
 
@@ -118,12 +118,12 @@ Do modelu boli pridané CHECK constraints, ktoré v prvej verzii chýbali:
 
 \begin{itemize}
     \item Zabezpečenie, že zľava sa vzťahuje len na repasovaný tovar, nie na nový.
-    \item Zabezpečenie, že ak je položka objednávky unikátny kus (repasovaný tovar — id\_tovaru nie je NULL), množstvo musí byť presne 1.
+    \item Zabezpečenie, že ak je položka objednávky unikátny kus (repasovaný tovar — \texttt{id\_tovaru} nie je NULL), množstvo musí byť presne 1.
     \item Logická kontrola, aby platba patrila buď objednávke, alebo oprave, nikdy nie obom súčasne.
 \end{itemize}
 
-
-\subsection*{Konkrétne zmeny v tabuľkách}
+\newpage
+\subsection*{Ďalšie zmeny v tabuľkách}
 \begin{table}[h]
 \renewcommand{\arraystretch}{1.5} % Zväčší rozostupy medzi riadkami pre lepšiu čitateľnosť
 \centering
@@ -148,7 +148,7 @@ Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integrit
 \end{table}
 
 
-
+\newpage
 \newpage
 \section{Fyzický model - implementácia}
 \label{sec:model}
