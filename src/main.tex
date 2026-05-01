@@ -108,7 +108,7 @@ Dátový model prešiel výraznou optimalizáciou a rozšírením. Cieľom zmien
 \subsection{Rozšírenie biznis logiky}
 
 \begin{itemize}
-    \item \textbf{Finančný modul:} Boli pridané tabuľky Platba (rieši smer peňazí cez \texttt{typ\_transakcie| — Príjem/Výdavok) a Faktura (daňový doklad s väzbou 1:1 na úspešnú platbu).
+    \item \textbf{Finančný modul:} Boli pridané tabuľky Platba (rieši smer peňazí cez \texttt{typ\_transakcie} — Príjem/Výdavok) a Faktura (daňový doklad s väzbou 1:1 na úspešnú platbu).
     \item \textbf{Komunikačný modul:} Tabuľka správ bola rozšírená o stĺpec \texttt{odpoved\_na\_id} (Self-Join). To umožňuje reťazenie správ do vlákien (threads), čo je kľúčové pre technickú podporu.
 \end{itemize}
 
