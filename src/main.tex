@@ -13,6 +13,8 @@
 \usepackage{float}          % [H] placement for figures and tables
 \usepackage{xcolor}         % colors (used by listings)
 \usepackage{listings}       % code listings
+\usepackage{tabularx}       % zobrazenie tabuliek
+\usepackage[table]{xcolor}
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue!70!black}
 
 % ─── Code listing style ─────────────────────────────────────────────────────
@@ -89,9 +91,62 @@
 
 \section{Zmeny oproti Zadaniu 1}
 \label{sec:zmeny}
+Dátový model prešiel výraznou optimalizáciou a rozšírením. Cieľom zmien bolo zvýšiť integritu dát, lepšie pokryť biznis procesy e-shopu (najmä financie a komunikáciu) a zjednodušiť prácu s unikátnymi položkami (repasmi).
 
 % ── Subsections ──────────────────────────────────────────────────────────────
 % Use \subsection{} and \subsubsection{} when you need more structure.
+
+\subsection{Štrukturálne a technické zmeny}
+
+\begin{itemize}
+    \item \textbf{Zmena dátových typov primárnych kľúčov:} Pôvodne navrhované UUID boli nahradené typom SERIAL (INTEGER). Dôvodom je lepšia čitateľnosť pri manuálnom testovaní dopytov a vyššia efektivita indexovania v rámci školského projektu.
+    \item \textbf{Zavedenie ENUM typov:} Pevné textové reťazce (statusy) boli nahradené systémovými ENUM typmi. Tým sa eliminovalo riziko preklepov a zabezpečilo sa, že stavy (objednávok, opráv, tovaru) môžu nadobúdať len vopred definované hodnoty.
+    \item \textbf{Rozbitie M:N vzťahu v objednávkach:} Pôvodná tabuľka Objednavka\_Tovar bola transformovaná na Objednavka\_Polozka. Pridaný bol stĺpec jednotkova\_cena, aby sme zachovali historickú cenu v čase nákupu (nezávisle od aktuálnej ceny v katalógu) a stĺpec id\_tovaru, ktorý umožňuje priradiť k objednávke konkrétny unikátny kus (napr. konkrétny repasovaný mobil so sériovým číslom).
+\end{itemize}
+
+
+\subsection{Rozšírenie biznis logiky}
+
+\begin{itemize}
+    \item \textbf{Finančný modul:} Boli pridané tabuľky Platba (rieši smer peňazí cez typ\_transakcie – Príjem/Výdavok) a Faktura (daňový doklad s väzbou 1:1 na úspešnú platbu).
+    \item \textbf{Komunikačný modul:} Tabuľka správ bola rozšírená o stĺpec odpoved\_na\_id (Self-Join). To umožňuje reťazenie správ do vlákien (threads), čo je kľúčové pre technickú podporu.
+\end{itemize}
+
+
+\subsection{Logické obmedzenia (Constraints)}
+Do modelu boli pridané CHECK constraints, ktoré v prvej verzii chýbali:
+
+\begin{itemize}
+    \item Zabezpečenie, že zľava sa vzťahuje len na repasovaný tovar, nie na nový.
+    \item Zabezpečenie, že ak je položka objednávky unikátny kus (repasovaný tovar — id\_tovaru nie je NULL), množstvo musí byť presne 1.
+    \item Logická kontrola, aby platba patrila buď objednávke, alebo oprave, nikdy nie obom súčasne.
+\end{itemize}
+
+
+\subsection*{Konkrétne zmeny v tabuľkách}
+\begin{table}[h]
+\renewcommand{\arraystretch}{1.5} % Zväčší rozostupy medzi riadkami pre lepšiu čitateľnosť
+\centering
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\rowcolor[gray]{0.9} % Voliteľné: šedý záhlavný riadok (vyžaduje \usepackage[table]{xcolor})
+\textbf{Entita} & \textbf{Zmena} & \textbf{Odôvodnenie} \\ \hline
+
+Tovar & Pridaný stĺpec \texttt{repas\_percentualna\_zlava}. & Umožňuje dynamicky vypočítať cenu pre konkrétny repasovaný kus na základe jeho stavu. \\ \hline
+
+Oprava & Pridaný stĺpec \texttt{typ} (Servis vs. Repas). & Umožňuje v jednej tabuľke riešiť reklamácie zákazníkov aj výkupy zariadení na ďalší predaj. \\ \hline
+
+Oprava & Pridaný stĺpec \texttt{id\_zakaznika}. & Nevyhnutné pre online požiadavky na servis a pre evidenciu, komu vyplatiť peniaze pri výkupe (Repas). \\ \hline
+
+Diel & Zlúčenie \texttt{Poziadavka\_Na\_Diely} a \texttt{Oprava\_Diel}. & Pôvodný model bol zbytočne komplexný. Nová tabuľka \texttt{Oprava\_Pouzity\_Diel} priamo spája opravu s konkrétnymi dielmi a ich množstvom. \\ \hline
+
+Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integritu histórie – pracovníka nemažeme (kvôli archívu opráv), len ho deaktivujeme. \\ \hline
+
+\end{tabularx}
+\caption{Zmeny v modeli databázy oproti pôvodnému návrhu}
+\label{tab:zmeny_modelu}
+\end{table}
+
 
 
 \newpage
