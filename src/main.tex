@@ -184,14 +184,14 @@ V tejto časti je opísaná fyzická realizácia databázy v prostredí PostgreS
 \subsection{Zvolené ON DELETE stratégie}
 V rámci fyzického modelu sme zvolili stratégie, ktoré prioritne chránia integritu historických a finančných údajov.
 
-\begin{Itemize}
+\begin{itemize}
     \item textbf{RESTRICT (zakaznik -> objednavka / oprava):} Zákazníka nie je možné odstrániť, ak má v systéme záznamy o nákupoch alebo servise. Je to nevyhnutné kvôli reklamáciám a zákonnej evidencii.
     \item textbf{CASCADE (objednavka -> objednavka\_polozka):} Pri zmazaní objednávky (napr. ak ide o chybný testovací záznam) automaticky zanikajú aj jej položky. Týmto predchádzame nevzužitým riadkom v spojovacej tabuľke, ktoré by bez hlavičky objednávky nemali zmysel.
     \item textbf{RESTRICT (tovar -> objednavka\_polozka / oprava):} Fyzický kus tovaru so sériovým číslom nie je možné vymazať, ak už figuruje v predaji alebo v servisnom protokole. Chránime tým integritu skladovej histórie.
     \item textbf{SET NULL (pracovnik -> oprava / sprava):} Ak pracovník prestane pracovať pre firmu a jeho záznam by bol odstránený, pri priradených opravách alebo správach sa hodnota zmení na NULL. To umožňuje zachovať záznam o komunikácii a servise, pričom systém indikuje, že technik už nie je priradený.
     \item textbf{RESTRICT (platba -> faktura):} Platbu nie je možné zmazať, kým existuje faktúra. Chránime tým účtovnú nadväznosť, aby neexistoval daňový doklad bez podkladovej platby.
     \item textbf{SET NULL (sprava -> sprava):} Pri rekurzívnej väzbe \texttt{odpoved\_na\_id} zabezpečujeme, že ak sa vymaže pôvodná správa v reťazci, jej odpovede ostanú v databáze zachované, len sa stratí odkaz na ich predchodcu.
-\end{Itemize}
+\end{itemize}
 
 
 \newpage
