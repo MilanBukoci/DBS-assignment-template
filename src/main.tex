@@ -141,7 +141,7 @@ Oprava & Pridaný stĺpec \texttt{typ} (Servis vs. Repas). & Umožňuje v jednej
 Oprava & Pridaný stĺpec \texttt{id\_zakaznika}. & Nevyhnutné pre online požiadavky na servis a pre evidenciu, komu vyplatiť peniaze pri výkupe (Repas). \\ \hline
 
 Diel & Zlúčenie \texttt{Poziadavka\_Na\_Diely} a \texttt{Oprava\_Diel}. & Pôvodný model bol zbytočne komplexný. Nová tabuľka \texttt{Oprava\_Pouzity\_Diel} priamo spája opravu s konkrétnymi dielmi a ich množstvom. \\ \hline
-
+\
 Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integritu histórie – pracovníka nemažeme (kvôli archívu opráv), len ho deaktivujeme. \\ \hline
 
 \end{tabularx}
@@ -153,6 +153,45 @@ Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integrit
 
 \section{Fyzický model - implementácia}
 \label{sec:model}
+V tejto časti je opísaná fyzická realizácia databázy v prostredí PostgreSQL.
+
+\subsection{Zoznam tabuliek}
+
+\begin{itemize}
+    \item textbf{Zakaznik:} Evidencia registrovaných používateľov, ich kontaktných a prihlasovacích údajov.
+    \item textbf{Pracovnik:} Zoznam zamestnancov e-shopu (podpora, opravári, administrátori) s príznakom aktivity.
+    \item textbf{Produkt:} Katalóg ponúkaných modelov zariadení s fixnou základnou cenou a kategóriou.
+    \item textbf{Tovar:} Fyzické kusy produktov na sklade, rozlíšené sériovými číslami a stavom (nový/repas).
+    \item textbf{Objednavka:} Zastrešuje nákupný proces zákazníka, celkovú sumu a aktuálny stav spracovania.
+    \item textbf{Objednavka\_Polozka:} Prepojovacia tabuľka detailov objednávky uchovávajúca historickú cenu v čase predaja.
+    \item textbf{Oprava:} Evidencia opráv servisných zariadení a výkupov (repasov) vrátane technických správ a priority.
+    \item textbf{Diel:} Skladová evidencia náhradných komponentov potrebných pre opravy.
+    \item textbf{Oprava\_Pouzity\_Diel:} Detailný rozpis dielov spotrebovaných pri konkrétnej oprave.
+    \item textbf{Platba:} Finančné záznamy o príjmoch (predaj) a výdavkoch (výkup/repas) prepojené na procesy.
+    \item textbf{Faktura:} Oficiálny účtovný doklad generovaný k úspešne zrealizovaným platbám.
+    \item textbf{Sprava:} Log komunikácie medzi zákazníkom a podporou s podporou vetvenia správ.
+\end{itemize}
+
+\subsection{Integritné obmedzenia}
+
+\begin{itemize}
+    \item textbf{CHECK v tabuľke Platba:} Zabezpečuje, že platba je priradená buď objednávke, alebo oprave. Nie je prípustné, aby platba patrila obom entitám súčasne.
+    \item textbf{UNIQUE na \texttt{id\_tovaru} v Objednavka\_Polozka:} Toto obmedzenie garantuje, že konkrétny fyzický kus tovaru (napr. konkrétny repasovaný iPhone) nemôže byť predaný dvakrát v dvoch rôznych objednávkach.
+    \item textbf{CHECK na \texttt{repas\_percentualna\_zlava}:} Vynucuje, aby zľava bola zadaná len vtedy, ak je stav tovaru označený ako „Repasovaný“, čím chráni integritu cenotvorby nových produktov.
+    \item textbf{UNIQUE na \texttt{variabilny\_symbol}:} V tabuľke Platba chráni pred duplicitným spracovaním tej istej bankovej transakcie.
+\end{itemize}
+
+\subsection{Zvolené ON DELETE stratégie}
+V rámci fyzického modelu sme zvolili stratégie, ktoré prioritne chránia integritu historických a finančných údajov.
+
+\begin{Itemize}
+    \item textbf{RESTRICT (zakaznik -> objednavka / oprava):} Zákazníka nie je možné odstrániť, ak má v systéme záznamy o nákupoch alebo servise. Je to nevyhnutné kvôli reklamáciám a zákonnej evidencii.
+    \item textbf{CASCADE (objednavka -> objednavka\_polozka):} Pri zmazaní objednávky (napr. ak ide o chybný testovací záznam) automaticky zanikajú aj jej položky. Týmto predchádzame nevzužitým riadkom v spojovacej tabuľke, ktoré by bez hlavičky objednávky nemali zmysel.
+    \item textbf{RESTRICT (tovar -> objednavka\_polozka / oprava):} Fyzický kus tovaru so sériovým číslom nie je možné vymazať, ak už figuruje v predaji alebo v servisnom protokole. Chránime tým integritu skladovej histórie.
+    \item textbf{SET NULL (pracovnik -> oprava / sprava):} Ak pracovník prestane pracovať pre firmu a jeho záznam by bol odstránený, pri priradených opravách alebo správach sa hodnota zmení na NULL. To umožňuje zachovať záznam o komunikácii a servise, pričom systém indikuje, že technik už nie je priradený.
+    \item textbf{RESTRICT (platba -> faktura):} Platbu nie je možné zmazať, kým existuje faktúra. Chránime tým účtovnú nadväznosť, aby neexistoval daňový doklad bez podkladovej platby.
+    \item textbf{SET NULL (sprava -> sprava):} Pri rekurzívnej väzbe \texttt{odpoved\_na\_id} zabezpečujeme, že ak sa vymaže pôvodná správa v reťazci, jej odpovede ostanú v databáze zachované, len sa stratí odkaz na ich predchodcu.
+\end{Itemize}
 
 
 \newpage
