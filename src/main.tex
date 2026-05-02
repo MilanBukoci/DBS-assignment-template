@@ -218,18 +218,18 @@ V tejto časti analyzujeme vplyv indexácie na výkonnosť systému. Primárnym 
 Okrem automaticky generovaných indexov pre primárne kľúče (PK) a unikátne obmedzenia boli vytvorené nasledujúce vlastné indexy:
 
 \begin{enumerate}
-    \item \textbf{idx_tovar_stav_produkt}
+    \item \textbf{idx\_tovar\_stav\_produkt}
 
     \begin{itemize}
-        \item \textbf{Definícia:} \texttt{CREATE INDEX idx_tovar_stav_produkt ON tovar (id_produktu, stav);}
+        \item \textbf{Definícia:} \texttt{CREATE INDEX idx\_tovar\_stav\_produkt ON tovar (id\_produktu, stav);}
         \item Podporuje filtrovanie v katalógu a validačnú časť procesu 1. Umožňuje databáze rýchlo nájsť kusy konkrétneho produktu v požadovanom stave (Nový/Repasovaný) bez prehľadávania celého skladu.
     \end{itemize}
     
-    \item \textbf{idx_tovar_window_funkcia}
+    \item \textbf{idx\_tovar\_window\_funkcia}
 
     \begin{itemize}
-        \item \textbf{Definícia:} \texttt{CREATE INDEX idx_tovar_window_funkcia ON tovar (id_produktu, id_tovaru) WHERE (stav = 'Nový');}
-        \item Parciálny index navrhnutý pre optimalizáciu okienkovej funkcie ROW_NUMBER(). Poskytuje dáta už zoradené podľa id_tovaru, čím eliminuje potrebu explicitného triedenia (Sort) v pamäti.
+        \item \textbf{Definícia:} \texttt{CREATE INDEX idx\_tovar\_window\_funkcia ON tovar (id\_produktu, id\_tovaru) WHERE (stav = 'Nový');}
+        \item Parciálny index navrhnutý pre optimalizáciu okienkovej funkcie \texttt{ROW\_NUMBER()}. Poskytuje dáta už zoradené podľa \texttt{id\_tovaru}, čím eliminuje potrebu explicitného triedenia (Sort) v pamäti.
     \end{itemize}
     
 \end{enumerate}
@@ -263,7 +263,7 @@ Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integrit
 \begin{itemize}
         \item \textbf{Odstránenie Seq Scan:} V stave pred indexáciou musel plánovač vykonávať Seq Scan na tabuľku \texttt{tovar}. Po pridaní indexov sa prístup zmenil na Bitmap Index Scan a Index Only Scan, čo je pri narastajúcom objeme dát kľúčové pre stabilitu.
         \item \textbf{Efektivita vyrovnávacej pamäte:} Výrazný pokles v Shared Hit dokazuje, že databáza pracuje s oveľa menším objemom dát na dosiahnutie rovnakého výsledku. To šetrí RAM a znižuje opotrebenie diskov.
-        \item \textbf{Sort Removal:} Vďaka indexu \texttt{idx_tovar_window_funkcia} databáza získala vopred zoradené dáta, čím sa znížila réžia na výpočet poradia kusov pri rezervácii. 
+        \item \textbf{Sort Removal:} Vďaka indexu \texttt{idx\_tovar\_window\_funkcia} databáza získala vopred zoradené dáta, čím sa znížila réžia na výpočet poradia kusov pri rezervácii. 
 \end{itemize}
 
 % \clearpage
@@ -272,8 +272,8 @@ Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integrit
 Napriek indexácii existujú časti dopytu, ktorých výkon sa nezmenil dramaticky, alebo zostávajú relatívne nákladné:
 
 \begin{itemize}
-        \item \textbf{INSERT operácie:} Kroky \texttt{nova_objednavka} a \texttt{vlozena_polozka} zostávajú časovo takmer identické. Indexy totiž zrýchľujú čítanie (SELECT), ale mierne spomaľujú zápis (INSERT/UPDATE), pretože databáza musí pri každej zmene aktualizovať aj samotné indexy.
-        \item \textbf{UNION ALL v pohľade:} Spájanie dvoch rôznych logických celkov (nový vs. repasovaný tovar) v pohľade \texttt{katalog_predaja} vyžaduje spracovanie dvoch samostatných vetiev dopytu. Hoci sú obe vetvy teraz indexované, réžia spojená s ich zjednotením zostáva konštantná.
+        \item \textbf{INSERT operácie:} Kroky \texttt{nova\_objednavka} a \texttt{vlozena\_polozka} zostávajú časovo takmer identické. Indexy totiž zrýchľujú čítanie (SELECT), ale mierne spomaľujú zápis (INSERT/UPDATE), pretože databáza musí pri každej zmene aktualizovať aj samotné indexy.
+        \item \textbf{UNION ALL v pohľade:} Spájanie dvoch rôznych logických celkov (nový vs. repasovaný tovar) v pohľade \texttt{katalog\_predaja} vyžaduje spracovanie dvoch samostatných vetiev dopytu. Hoci sú obe vetvy teraz indexované, réžia spojená s ich zjednotením zostáva konštantná.
         \item \textbf{Malý časový rozdiel:} Pri 5000 záznamoch je databáza schopná spracovať Seq Scan veľmi rýchlo, pretože dáta sú v cache. Skutočný, rádový rozdiel v rýchlosti by sa prejavil až pri objemoch nad 100 000+ riadkov alebo pri vysokom počte paralelných používateľov.
 \end{itemize}
 
