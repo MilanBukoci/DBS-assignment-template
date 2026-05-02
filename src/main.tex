@@ -253,8 +253,6 @@ I/O Shared hit & 257 blokov & 163 blokov & \-36.6 \% \\ \hline
 
 Typ skenu & \texttt{Seq Scan on tovar} & \texttt{Bitmap Index Scan} / \texttt{Index Only Scan} & Optimalizácia prístupu \\ \hline
 
-Pracovnik & Pridaný stĺpec \texttt{aktivny} (BOOLEAN). & Zabezpečuje integritu histórie – pracovníka nemažeme (kvôli archívu opráv), len ho deaktivujeme. \\ \hline
-
 \end{tabularx}
 \caption{Porovnanie vykonaného dopytu bez indexov a s indexami}
 \label{tab:porovnanie_dopytu}
