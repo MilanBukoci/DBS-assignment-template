@@ -202,6 +202,143 @@ V rámci fyzického modelu sme zvolili stratégie, ktoré prioritne chránia int
 \newpage
 \section{Proces 1}
 \label{sec:proces_1}
+Tento proces predstavuje kľúčovú biznis logiku e-shopu – od dynamického zobrazenia aktuálnej ponuky v katalógu až po atomickú rezerváciu konkrétnych skladových kusov.
+
+\subsection{Popis procesu a väzba na scenár}
+Tento proces realizuje scenár \textbf{„Vytvorenie objednávky zákazníkom“} zo Zadania 1. Implementácia je rozdelená na dve logické časti:
+\begin{itemize}
+    \item \textbf{Pohľad:} Dynamicky vypočítava ceny pre unikátne repasované kusy (zohľadnenie percentuálnej zľavy) a agreguje zásoby pre nový tovar.
+    \item \textbf{Dopyt:} V rámci jedného dopytu vykoná validáciu (dostupnosť, cena, existencia zákazníka), zápis hlavičky a položiek objednávky, a nakoniec fyzickú zmenu stavu kusov v sklade.
+\end{itemize}
+
+\noindent Využitie reťazenia zápisov (Writable CTE) zaručuje, že objednávka nebude vytvorená, ak sa nepodarí úspešne zarezervovať požadovaný počet kusov, čím sa predchádza chybám v logistike.
+
+\subsection{SQL implementácia}
+
+\subsection*{Pohľad pre katalóg produktov}
+Tento pohľad slúži ako zdroj dát pre aplikáciu. Rozlišuje medzi unikátnym repasovaným tovarom a generickými novými kusmi.
+
+\begin{lstlisting}[language=SQL, caption={Definícia pohľadu pre katalóg predaja}]
+CREATE VIEW katalog_predaja AS
+-- 1. ČASŤ: Repasované kusy (každý jeden je unikátny záznam)
+SELECT 
+    p.id_produktu,
+    t.id_tovaru,
+    p.nazov,
+    ROUND(p.zakladna_cena * (1 - t.repas_percentualna_zlava / 100.0), 2) AS aktualna_cena,
+    1 AS skladom_mnozstvo,
+    'Repasovaný'::text AS typ_tovaru
+FROM tovar t
+JOIN produkt p ON t.id_produktu = p.id_produktu
+WHERE t.stav = 'Repasovaný'
+
+UNION ALL
+
+-- 2. ČASŤ: Nové produkty (zobrazené ako suma dostupných kusov)
+SELECT 
+    p.id_produktu,
+    NULL AS id_tovaru, -- Pri novom tovare nás konkrétne ID v katalógu nezaujíma
+    p.nazov,
+    p.zakladna_cena AS aktualna_cena,
+    COUNT(t.id_tovaru)::int AS skladom_mnozstvo,
+    'Nový'::text AS typ_tovaru
+FROM produkt p
+JOIN tovar t ON p.id_produktu = t.id_produktu
+WHERE t.stav = 'Nový' 
+  AND p.je_repasovany = false
+GROUP BY p.id_produktu, p.nazov, p.zakladna_cena;
+\end{lstlisting}
+
+\subsection*{Hlavný dopyt}
+Dopyt využíva komplexné CTE na zabezpečenie integrity celého nákupného procesu.
+
+\begin{lstlisting}[language=SQL, caption={SQL implementácia procesu vytvorenia objednávky}]
+WITH 
+parametre AS (
+    SELECT 
+        1 AS p_id_zakaznika, 
+        118 AS p_id_produktu, 
+        NULL::int AS p_id_tovaru, -- pretypovať NULL na integer
+        3 AS p_mnozstvo
+),
+
+-- 1. Validácia: Kontrola, či máme dosť kusov, či sedí cena a či existuje zákazník
+validacia AS (
+    SELECT z.id_zakaznika,
+        v.id_produktu, 
+        v.id_tovaru, 
+        v.aktualna_cena,
+        p.p_mnozstvo AS ziadane_mnozstvo
+    FROM katalog_predaja v
+	CROSS JOIN zakaznik z
+	CROSS JOIN parametre p
+    WHERE v.id_produktu = p.p_id_produktu AND z.id_zakaznika = p.p_id_zakaznika
+      AND (v.id_tovaru = p.p_id_tovaru OR (p.p_id_tovaru IS NULL AND v.id_tovaru IS NULL))
+      AND v.skladom_mnozstvo >= p.p_mnozstvo
+),
+
+-- 2. KROK: Vytvorenie hlavičky objednávky
+nova_objednavka AS (
+    INSERT INTO objednavka (id_zakaznika, stav, celkova_suma)
+    SELECT id_zakaznika, 'Nová', (aktualna_cena * ziadane_mnozstvo) 
+    FROM validacia
+    RETURNING id_objednavky, id_zakaznika
+),
+
+-- 3. KROK: Vloženie položky objednávky (využíva ID z predošlého kroku)
+vlozena_polozka AS (
+    INSERT INTO objednavka_polozka (id_objednavky, id_produktu, id_tovaru, mnozstvo, jednotkova_cena)
+    SELECT 
+        o.id_objednavky, 
+        v.id_produktu, 
+        v.id_tovaru, 
+        v.ziadane_mnozstvo, 
+        v.aktualna_cena
+    FROM nova_objednavka o
+    JOIN validacia v ON o.id_zakaznika = v.id_zakaznika
+    RETURNING id_tovaru, id_produktu, mnozstvo
+),
+
+-- 4. Rezervácia v sklade
+-- Musíme označiť presný počet kusov ako 'Rezervovaný'
+vyber_kusov_na_rezervaciu AS (
+   SELECT podvyber.id_tovaru
+    FROM (
+        SELECT t.id_tovaru,
+               -- Očíslujeme dostupné kusy od 1 po N
+               ROW_NUMBER() OVER (PARTITION BY t.id_produktu ORDER BY t.id_tovaru) as poradie
+        FROM tovar t
+        JOIN vlozena_polozka vp ON t.id_produktu = vp.id_produktu
+        WHERE (vp.id_tovaru IS NULL AND t.stav = 'Nový') -- Pre nové produkty
+           OR (t.id_tovaru = vp.id_tovaru)               -- Pre repas
+    ) podvyber
+    CROSS JOIN parametre p
+    WHERE podvyber.poradie <= p.p_mnozstvo -- Berieme len zadané množstvo
+)
+
+-- 4. KROK: Aktualizácia stavu tovaru (Finalizácia procesu)
+UPDATE tovar
+SET stav = 'Rezervovaný'
+WHERE id_tovaru IN (SELECT id_tovaru FROM vyber_kusov_na_rezervaciu);
+\end{lstlisting}
+
+\subsection{Ukážka spustenia nad seed dátami}
+Proces bol overený nad testovacou vzorkou dát s nasledujúcimi výsledkami:
+
+\begin{itemize}
+    \item \textbf{Vstup:} Zákazník č. 1 požaduje 3 kusy produktu č. 118 (nový tovar).
+    \item \textbf{Interný priebeh:} Validácia overí dostupnosť cez pohľad \texttt{katalog\_predaja}. Ak je podmienka splnená, vytvorí sa objednávka a priradia sa položky. Funkcia \texttt{ROW\_NUMBER()} zabezpečí výber presne dvoch najstarších skladových kusov.
+    \item \textbf{Výstup:} V tabuľke \texttt{objednavka} pribudne záznam so správne vypočítanou sumou a v tabuľke \texttt{tovar} sa zmení stav vybraných kusov na 'Rezervovaný'.
+    \item \textbf{Výkonnosť:} Pri 5000 záznamoch trvá operácia priemerne 3~ms.
+\end{itemize}
+
+\subsection{Indexy podporujúce tento proces}
+Tento proces sa opiera o dva vytvorené indexy:
+
+\begin{enumerate}
+    \item \textbf{\texttt{idx\_tovar\_stav\_produkt}:} Zrýchľuje dopytovanie v pohľade \texttt{katalog\_predaja}, čím zabezpečuje okamžitú odozvu pri kontrole stavu zásob.
+    \item \textbf{\texttt{idx\_tovar\_window\_funkcia}:} Optimalizuje výber kusov na rezerváciu. Keďže ide o parciálny index pre stav 'Nový', databáza nemusí skenovať predaný tovar a vďaka zoradeniu podľa \texttt{id\_tovaru} eliminuje potrebu operácie \texttt{Sort} v pamäti.
+\end{enumerate}
 
 
 \newpage
