@@ -13,6 +13,31 @@
 \usepackage{float}          % [H] placement for figures and tables
 \usepackage{xcolor}         % colors (used by listings)
 \usepackage{listings}       % code listings
+\lstset{
+  literate={Č}{{\v{C}}}1
+           {č}{{\v{c}}}1
+           {Š}{{\v{S}}}1
+           {š}{{\v{s}}}1
+           {Ž}{{\v{Z}}}1
+           {ž}{{\v{z}}}1
+           {á}{{\'a}}1
+           {í}{{\'i}}1
+           {é}{{\'e}}1
+           {ý}{{\'y}}1
+           {ó}{{\'o}}1
+           {ú}{{\'u}}1
+           {Ľ}{{\v{L}}}1
+           {ľ}{{\v{l}}}1
+           {Ť}{{\v{T}}}1
+           {ť}{{\v{t}}}1
+           {Ď}{{\v{D}}}1
+           {ď}{{\v{d}}}1
+           {ň}{{\v{n}}}1
+           {Ň}{{\v{N}}}1
+           {ŕ}{{\'r}}1
+           {ŕ}{{\'R}}1
+           {ô}{{\^o}}1
+}
 \usepackage{tabularx}       % zobrazenie tabuliek
 \usepackage[table]{xcolor}
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue!70!black}
@@ -220,7 +245,7 @@ Tento pohľad slúži ako zdroj dát pre aplikáciu. Rozlišuje medzi unikátnym
 
 \begin{lstlisting}[language=SQL, caption={Definícia pohľadu pre katalóg predaja}]
 CREATE VIEW katalog_predaja AS
--- 1. ČASŤ: Repasované kusy (každý jeden je unikátny záznam)
+-- 1. CAST: Repasované kusy (kazdy jeden je unikatny záznam)
 SELECT 
     p.id_produktu,
     t.id_tovaru,
@@ -234,10 +259,10 @@ WHERE t.stav = 'Repasovaný'
 
 UNION ALL
 
--- 2. ČASŤ: Nové produkty (zobrazené ako suma dostupných kusov)
+-- 2. CAST: Nové produkty (zobrazene ako suma dostupnych kusov)
 SELECT 
     p.id_produktu,
-    NULL AS id_tovaru, -- Pri novom tovare nás konkrétne ID v katalógu nezaujíma
+    NULL AS id_tovaru, -- Pri novom tovare nas konkretne ID v katalogu nezaujima
     p.nazov,
     p.zakladna_cena AS aktualna_cena,
     COUNT(t.id_tovaru)::int AS skladom_mnozstvo,
@@ -443,7 +468,7 @@ Napriek indexácii existujú časti dopytu, ktorých výkon sa nezmenil dramatic
 \begin{figure}[H]
     \centering
     \includegraphics[width=1.0\textwidth]{../assets/diagram.png}
-    \caption{Fyzický relačný model databázy nášho e-shopu}
+    \caption{Fyzický model databázy nášho e-shopu}
     \label{fig:physical_model}
 \end{figure}
 
