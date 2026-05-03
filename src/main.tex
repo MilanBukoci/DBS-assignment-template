@@ -646,6 +646,14 @@ Napriek indexácii existujú časti dopytu, ktorých výkon sa nezmenil dramatic
 \section{Zhodnotenie}
 \label{sec:zhodnotenie}
 
+Naším hlavným prekvapením pri práci na tomto zadaní bolo správanie optimalizátora v databáze PostgreSQL. Zistili sme, že pri menšom množstve dát dokáže databáza úplne ignorovať vytvorené indexy. Optimalizátor si totiž dokáže spočítať, že načítanie celej menšej tabuľky priamo z pamäte pomocou sekvenčného skenovania je v danej situácii oveľa rýchlejšie a efektívnejšie, než pristupovanie k dátam cez index.
+
+Pri implementácii sme narazili na viaceré nedostatky v našom pôvodnom dátovom modeli, čo si vyžiadalo rozsiahlejšie zmeny. Pôvodné UUID kľúče sme nahradili typom SERIAL pre lepšiu čitateľnosť a pevné textové reťazce sme vymenili za ENUM typy. Najvýraznejšou zmenou bolo rozbitie M:N vzťahu pri objednávkach do tabuľky \texttt{Objednavka\_Polozka}, kde sme pridali historickú jednotkovú cenu a možnosť priradenia konkrétneho fyzického kusu tovaru. Taktiež sme model rozšírili o chýbajúci finančný modul, reťazenie správ pre technickú podporu a doplnili sme dôležité CHECK obmedzenia (napríklad zľavy povolené iba pre repasovaný tovar).
+
+Najťažším biznis pravidlom na vyjadrenie v čistom SQL bolo pre nás presné zarezervovanie požadovaného množstva fyzických kusov tovaru na sklade. V prvom procese bolo náročné dynamicky vybrať a zmeniť stav len obmedzenému počtu dostupných položiek v rámci jedného dopytu. Tento problém sme nakoniec úspešne vyriešili použitím \texttt{ROW\_NUMBER()}, pomocou ktorej sme si dostupné kusy očíslovali a následne zarezervovali len požadovaný počet.
+
+Nástroje umelej inteligencie sme pri tomto zadaní využili účelovo. Konkrétne nám AI pomohla s opravou formátovania v LaTeX a s textovou či gramatickou kontrolou dokumentácie. V rámci technickej časti sme umelú inteligenciu použili na získanie informácií o práci s knižnicou Faker pri tvorbe seed dát a na pomoc pri hľadaní skrytých chýb v zdrojovom kóde Python generátora.
+
 
 % ─── Bibliography ────────────────────────────────────────────────────────────
 % \printbibliography
