@@ -223,6 +223,58 @@ V rámci fyzického modelu sme zvolili stratégie, ktoré prioritne chránia int
 \section{Seed dáta}
 \label{sec:seed}
 
+Pre naplnenie databázy realistickými údajmi sme sa rozhodli vytvoriť vlastný komplexný generátor v jazyku Python. Tento prístup nám umožnil plnú kontrolu nad biznis logikou, distribúciou dát a zachovaním referenčnej aj historickej integrity.
+
+\subsection{Nástroje a proces generovania}
+Základom generovania bola knižnica Faker s lokalizáciou \texttt{sk\_SK}, vďaka ktorej sú vygenerované mená, adresy a kontaktné údaje realistické pre slovenský trh. Pre dosiahnutie maximálnej autenticity adries sme implementovali externý dataset \texttt{obce.json} (z voľne dostupného repozitára github.com/FeroVolar/PSC-JSON), ktorý zabezpečuje, že vygenerovaný názov mesta vždy korešponduje s jeho reálnym poštovým smerovacím číslom (PSČ).
+
+Architektúra skriptu je plne objektovo orientovaná a rozdelená na čiastkové generátory podľa domén. Generovanie prebieha striktne po úrovniach závislostí:
+\begin{itemize}
+    \item \textbf{Úroveň 0 (Nezávislé entity):} Zákazník, Pracovník, Produkt, Náhradný diel.
+    \item \textbf{Úroveň 1 (Skladové zásoby):} Fyzické kusy tovaru (odvodené od produktov).
+    \item \textbf{Úroveň 2 a 3 (Obchod a servis):} Objednávky a Opravy (využívajú zákazníkov, zamestnancov a skladové zásoby).
+    \item \textbf{Úroveň 4 (Nadväzujúce procesy):} Platby, Faktúry a Komunikácia (odvodené od predchádzajúcich procesov).
+\end{itemize}
+
+\subsection{Objem a distribúcia dát}
+Požiadavkou zadania bolo vygenerovať minimálne 10 000 záznamov. Skript využíva dynamické rozloženie na základe konštanty cieľového počtu riadkov. Pri nastavení očakávaných 15 000 záznamov bolo vďaka nadväzujúcim prepojeniam a realistickému vetveniu procesov celkovo vygenerovaných viac ako 20 000 záznamov v hlavných tabuľkách.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Názov tabuľky} & \textbf{Počet vygenerovaných záznamov} \\ \hline
+Zakaznik & 1 950 \\ \hline
+Pracovnik & 50 \\ \hline
+Produkt & 899 \\ \hline
+Diel & 200 \\ \hline
+Tovar & 4 950 \\ \hline
+Objednavka & 1 641 \\ \hline
+Oprava & 1 500 \\ \hline
+Platba & 2 636 \\ \hline
+Faktura & 2 224 \\ \hline
+Sprava & 4 490 \\ \hline
+\textbf{Celkový počet (hlavné tabuľky)} & \textbf{20 540} \\ \hline
+\end{tabular}
+\caption{Distribúcia vygenerovaných dát v databáze}
+\label{tab:seed_data}
+\end{table}
+
+Distribúcia nie je uniformná, ale využíva váženú náhodnosť, čím presne reflektuje realitu e-shopu. Napríklad:
+\begin{itemize}
+    \item Iba 5 \% objednávok má stav \texttt{Zrušená}, kým 60 \% je \texttt{Odoslaná}.
+    \item Väčšinu zamestnancov (40 \%) tvoria opravári, kým administrátorov je len 5 \%.
+    \item Väčšina zákazníckych tiketov (komunikácia) vyvolá odpoveď technickej podpory (70 \%), čo vedie k vytvoreniu reťazených konverzácií s viacerými správami.
+\end{itemize}
+
+\subsection{Zabezpečenie dátovej a biznis konzistencie}
+\begin{itemize}
+    \item \textbf{Referenčná integrita:} Skript odovzdáva už vygenerované záznamy (ako zoznamy slovníkov) medzi jednotlivými triedami v pamäti. Objednávka tak nikdy nemôže odkazovať na neexistujúci produkt alebo zákazníka.
+    \item \textbf{Časové závislosti:} Využitím časových posunov (\texttt{timedelta}) je zaručená chronologická správnosť. Platba vždy vzniká až určitý počet hodín po vytvorení objednávky a odpoveď pracovníka podpory je vždy v čase neskoršia ako prvotná správa zákazníka. Taktiež dátum naskladnenia tovaru vždy predchádza dátumu jeho predaja.
+    \item \textbf{Logika stavov (Mutácia):} Generátor nevytvára izolované záznamy pre rôzne stavy, ale simuluje životný cyklus databázy. Na začiatku je vygenerovaný sklad, kde majú všetky fyzické kusy tovaru stav \texttt{Nový}. Pri generovaní objednávok systém vyhľadá dostupné nové kusy a priamo im zmení stav na \texttt{Predaný}. Rovnaký princíp platí pre opravy, kde sa vyberá len z už predaných zariadení a ich stav sa mení na \texttt{V\_oprave} alebo \texttt{Repasovaný}.
+\end{itemize}
+
 
 \newpage
 \section{Proces 1}
@@ -370,6 +422,150 @@ Tento proces sa opiera o dva vytvorené indexy:
 \section{Proces 2}
 \label{sec:proces_2}
 
+\subsection{Doplnenie používateľského scenára}
+Tento scenár v pôvodnom návrhu nebol explicitne definovaný, ale je nevyhnutný pre analytické a manažérske účely e-shopu. Dopĺňa komplexný pohľad na životný cyklus tovaru od jeho predaja až po prípadnú reklamáciu.
+
+\subsection*{Aktér}
+Administrátor (Manažér)
+
+\subsection*{Stručný popis}
+Manažér si vyžiada štatistický report o spoľahlivosti produktov. Systém analyzuje historické dáta predajov a následných reklamácií, vypočíta percentuálnu chybovosť jednotlivých modelov a vytvorí ich ranking v rámci kategórií. Pre zabezpečenie štatistickej relevancie systém vynechá produkty s nízkym počtom predajov. Tým pomáha pri rozhodovaní o stiahnutí problémových produktov z ponuky alebo pri zmene dodávateľa.
+
+\subsection*{Vstupné podmienky}
+\begin{itemize}
+    \item Administrátor je prihlásený do systému s príslušnými právami
+    \item V databáze existuje dostatočné množstvo zrealizovaných objednávok a zaevidovaných servisných záznamov
+\end{itemize}
+
+\subsection*{Výstupné podmienky}
+\begin{itemize}
+    \item Je vygenerovaný report obsahujúci počet predaných kusov, celkovú tržbu a počet reklamácií pre každý produkt
+    \item Produkty sú ohodnotené a zoradené podľa spoľahlivosti v každej kategórii
+\end{itemize}
+
+\subsection*{Hlavný tok scenára}
+\begin{enumerate}
+    \item Administrátor zvolí v systéme možnosť generovania reportu spoľahlivosti produktov
+    \item Systém zosumarizuje celkové predané množstvo a finančný obrat pre každý konkrétny produkt
+    \item Systém identifikuje, koľko z týchto predaných kusov sa vrátilo na reklamáciu (prešli procesom opravy s typom 'Servis')
+    \item Systém odfiltruje produkty, z ktorých sa predalo príliš málo kusov, aby bola štatistika relevantná
+    \item Systém vypočíta percentuálnu mieru poruchovosti
+    \item Systém aplikuje ranking pre porovnanie produktov vo vnútri ich príslušných kategórií
+    \item Manažér vidí prehľadnú tabuľku s výsledkami, pričom na prvých miestach sú najviac poruchové modely
+\end{enumerate}
+
+\subsection*{Čo sa deje na dátovej vrstve:}
+\begin{enumerate}
+    \item Načítanie záznamov o úspešných objednávkach a k nim priradených predaných produktoch
+    \item Vyhľadanie servisných záznamov (reklamácií) a ich spárovanie s konkrétnymi predanými kusmi tovaru
+    \item Zoskupenie údajov podľa jednotlivých produktov a ich kategórií
+    \item Odfiltrovanie produktov, ktoré nespĺňajú minimálnu hranicu celkového počtu predajov
+    \item Výpočet agregovaných metrík (celkové tržby, chybovosť) a priradenie poradia (rankingu) pre vizualizáciu
+\end{enumerate}
+
+\subsection{Popis procesu a väzba na scenár}
+Tento analytický proces priamo realizuje vyššie uvedený scenár. Ide o komplexný \textbf{SELECT} dopyt, ktorý slúži na získanie manažérskych metrík z viacerých tabuliek. Na rozdiel od Procesu 1, ktorý bol operačný (transakčný), tento dopyt dáta nemení, ale ich len spája a vyhodnocuje. 
+
+Vstupom do procesu sú všetky historické dáta predajov a opráv. Dopyt filtruje len úspešné (nezrušené) objednávky a z opráv berie do úvahy výlučne typ 'Servis' (reklamácie od zákazníkov), pričom ignoruje 'Repas', aby nedošlo k skresleniu štatistiky poruchovosti u koncového spotrebiteľa. Pre dosiahnutie dobrých výsledkov sú pri zoskupovaní odfiltrované tie modely, z ktorých sa historicky predalo len veľmi málo kusov. Výstupom sú usporiadané dáta pripravené na zobrazenie v manažérskom dashboarde.
+
+\subsection{SQL implementácia}
+Dopyt je rozdelený pomocou \textbf{WITH (CTE)} na dve nezávislé časti. Najprv v \textbf{sold\_items} zosumarizujeme úspešné predaje \textbf{HAVING} rovno vyradíme produkty s nízkym predajom (menej ako 5 kusov). Následne v \textbf{repaired\_items} spočítame reklamácie zákazníkov. V hlavnom \textbf{SELECT} tieto dočasné tabuľky prepojíme pomocou \textbf{LEFT JOIN}, aby v reporte zostali aj úplne bezporuchové produkty (chýbajúce opravy nahrádzame nulou cez \textbf{COALESCE}). Na záver vypočítame percentuálnu mieru poruchovosti a pomocou \textbf{RANK()} produktom priradíme hodnotenie v rámci ich kategórie.
+
+\begin{lstlisting}[language=SQL, caption={Analýza poruchovosti a finančnej efektivity produktov}]
+-- Najrv si vyberame realne predane produkty a spajame do skupin podla id_produktu
+-- Vysledok napr: id_produktu = 41, sold_count = 10, total_revenue = 5678.35
+-- Toto znamena ze sme predali 10 kusov produktu s id 41 (napr. notebook X) za 5678.35
+WITH sold_items AS (
+	SELECT
+		p.id_produktu,
+		SUM(p.mnozstvo) AS sold_count,
+		SUM(p.mnozstvo * p.jednotkova_cena) AS total_revenue
+	FROM objednavka_polozka p
+	JOIN objednavka o
+		ON p.id_objednavky = o.id_objednavky
+	WHERE o.stav NOT IN ('Nová', 'Zrušená')
+	GROUP BY p.id_produktu
+	HAVING SUM(p.mnozstvo) >= 5
+),
+-- Potom v tejto tabulke spocitame kolko oprav konkretneho produktu sme mali
+-- Vysledok napr: id_produktu = 41, repair_count = 3
+-- Produkt z id 41 bol opravovany (typ opravy 'Servis') trikrat
+	repaired_items AS (
+	SELECT
+		t.id_produktu,
+		COUNT(o.id_opravy) AS repair_count
+	FROM oprava o
+	JOIN tovar t
+		ON o.id_tovaru = t.id_tovaru
+	WHERE o.typ = 'Servis'
+	GROUP BY t.id_produktu
+)
+
+-- Vo finalnej casti len spojime to, co uz mame a vypocitame spolahlivost
+SELECT
+	p.kategoria,
+	p.nazov,
+	si.sold_count,
+	COALESCE(ri.repair_count, 0) AS repair_count,
+	si.total_revenue,
+	ROUND((COALESCE(ri.repair_count, 0) * 100.0 / si.sold_count), 2) AS failure_rate,
+	RANK() OVER(PARTITION BY p.kategoria 
+			ORDER BY ROUND((COALESCE(ri.repair_count, 0) * 100.0 / si.sold_count), 2))
+		AS reliability_rank
+FROM produkt p
+JOIN sold_items si
+	ON p.id_produktu = si.id_produktu
+LEFT JOIN repaired_items ri
+	ON p.id_produktu = ri.id_produktu
+-- Taktiez sortovanie funguje tak, ze ranking mame od najspolahlivejsieho k najemenej spolahlivemu
+-- Ale vypisujeme od najmenej spolahliveho, takze hore bude produkt s najvyssym failure_rate v svojej kategorii
+ORDER BY p.kategoria, reliability_rank DESC, p.nazov;
+\end{lstlisting}
+
+\subsection{Ukážka spustenia nad seed dátami}
+
+Tento analytický dopyt nevyžaduje žiadne vstupné parametre, spúšťa sa nad celou históriou e-shopu. Vďaka filtru systém spracoval len tie produkty, z ktorých sa predalo 5 a viac kusov.
+
+Výstup jasne ukazuje rozdelenie podľa kategórií. Na začiatku každej kategórie je vidieť najviac kazivé modely. Na konci zoznamu každej kategórie sa nachádzajú bezporuchové produkty s rankingom 1, ktoré nemali ani jednu reklamáciu (napríklad notebook \textit{MSI Cyborg 2025} s 10 predanými kusmi a nulovou chybovosťou.
+
+\vspace{1em}
+\noindent\textbf{Skrátený výber z výsledku dopytu:}
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|c|c|c|c|c|}
+\hline
+\textbf{Kategória} & \textbf{Názov produktu} & \textbf{Predané} & \textbf{Opravy} & \textbf{Tržba (€)} & \textbf{Chybovosť (\%)} & \textbf{Rank} \\ \hline
+Notebook & Asus Vivobook 2026 15,6 (...) & 5 & 4 & 16 366.50 & 80.00 & 167 \\ \hline
+Notebook & MSI Cyborg 2025 15,6 (...) & 10 & 0 & 33 121.80 & 0.00 & 1 \\ \hline
+Smartfón & Nokia 5Pro Max 512 GB (...) & 6 & 5 & 9 820.20 & 83.33 & 165 \\ \hline
+Smartfón & Xiaomi 8Fold 128 GB orange & 10 & 0 & 21 980.10 & 0.00 & 1 \\ \hline
+Televízor & Sony OLED 75 MIRP56G & 7 & 7 & 23 161.53 & 100.00 & 145 \\ \hline
+Televízor & TCL QLED 27 YIHO75L & 9 & 0 & 21 710.16 & 0.00 & 1 \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Zdôvodnenie korektnosti}
+
+Pre overenie správnosti tohto dopytu sme manuálne skontrolovali jeden konkrétny produkt. Z výslednej tabuľky sme si vybrali smartfón \uv{Nokia 5Pro Max 512 GB potato-yellow}, pri ktorom analytický report ukázal 6 predaných kusov, 5 reklamácií a poruchovosť 83.33 \%.
+
+Následne sme si v databáze zistili ID tohto produktu a spustili dva jednoduché kontrolné dopyty. Prvým sme overili iba predaje - spravili sme obyčajný súčet množstva z tabuľky \textbf{objednavka\_polozka} pre dané ID, pričom boli vynechané zrušené a nespracované objednávky. Tento dopyt vrátil hodnotu presne 6.
+
+Druhým izolovaným dopytom sme skontrolovali opravy. Spojili sme tabuľku \textbf{oprava} s tabuľkou \textbf{tovar} a spočítali všetky záznamy s typom 'Servis' pre to isté ID produktu. Výsledok bol presne 5. Keďže manuálne zistené čísla a aj ich matematický pomer presne sedia s naším analytickým dopytom, potvrdili sme, že prepojenie tabuliek funguje správne a nedochádza k duplicite alebo strate dát.
+
+\subsection{Indexy podporujúce tento proces}
+
+Pre optimalizáciu tohto analytického dopytu sme vytvorili parciálny (čiastočný) index \textbf{idx\_oprava\_servis} nad tabuľkou \textbf{oprava}. 
+
+\begin{itemize}
+    \item \textbf{Definícia:} \texttt{CREATE INDEX idx\_oprava\_servis ON oprava (id\_tovaru) WHERE typ = 'Servis';}
+\end{itemize}
+
+Keďže v dopyte filtrujeme výlučne reklamácie zákazníkov a prepájame ich s tabuľkou tovarov, databáza by teoreticky musela prehľadávať celú históriu opráv. Vytvorený index ukladá len záznamy spĺňajúce túto podmienku. Pri veľkých objemoch dát tento index zabraňuje sekvenčnému skenovaniu a urýchľuje prístup k relevantným záznamom.
+
 
 \newpage
 \section{Výkonnosť a indexy}
@@ -392,6 +588,13 @@ Okrem automaticky generovaných indexov pre primárne kľúče (PK) a unikátne 
     \begin{itemize}
         \item \textbf{Definícia:} \texttt{CREATE INDEX idx\_tovar\_window\_funkcia ON tovar (id\_produktu, id\_tovaru) WHERE (stav = 'Nový');}
         \item Parciálny index navrhnutý pre optimalizáciu okienkovej funkcie \texttt{ROW\_NUMBER()}. Poskytuje dáta už zoradené podľa \texttt{id\_tovaru}, čím eliminuje potrebu explicitného triedenia (Sort) v pamäti.
+    \end{itemize}
+
+    \item \textbf{idx\_oprava\_servis}
+
+    \begin{itemize}
+        \item \textbf{Definícia:} \texttt{CREATE INDEX idx\_oprava\_servis ON oprava (id\_tovaru) WHERE typ = 'Servis';}
+        \item Parciálny index pre analytický proces. Je navrhnutý na zrýchlenie filtrovania reklamácií a elimináciu sekvenčného skenovania pri spájaní s tabuľkou tovarov.
     \end{itemize}
     
 \end{enumerate}
@@ -435,6 +638,7 @@ Napriek indexácii existujú časti dopytu, ktorých výkon sa nezmenil dramatic
         \item \textbf{INSERT operácie:} Kroky \texttt{nova\_objednavka} a \texttt{vlozena\_polozka} zostávajú časovo takmer identické. Indexy totiž zrýchľujú čítanie (SELECT), ale mierne spomaľujú zápis (INSERT/UPDATE), pretože databáza musí pri každej zmene aktualizovať aj samotné indexy.
         \item \textbf{UNION ALL v pohľade:} Spájanie dvoch rôznych logických celkov (nový vs. repasovaný tovar) v pohľade \texttt{katalog\_predaja} vyžaduje spracovanie dvoch samostatných vetiev dopytu. Hoci sú obe vetvy teraz indexované, réžia spojená s ich zjednotením zostáva konštantná.
         \item \textbf{Malý časový rozdiel:} Pri 5000 záznamoch je databáza schopná spracovať Seq Scan veľmi rýchlo, pretože dáta sú v cache. Skutočný, rádový rozdiel v rýchlosti by sa prejavil až pri objemoch nad 100 000+ riadkov alebo pri vysokom počte paralelných používateľov.
+        \item \textbf{Ignorovanie indexu pri malej tabuľke:} Pri analytickom dopyte (Proces 2) sme vytvorili parciálny index \texttt{idx\_oprava\_servis}. EXPLAIN analýza však ukázala, že plánovač ho odignoroval a použil \texttt{Seq Scan}. Dôvodom je optimalizátor PostgreSQL. Tabuľka opráv obsahuje len okolo 1 500 záznamov a podmienku spĺňa viac ako 1 100 z nich. Plánovač správne vyhodnotil, že prečítať celú malú tabuľku z pamäte (Sequential I/O) je v tomto prípade lacnejšie a rýchlejšie ako prepájať index s dátovými blokmi (Random I/O). Efekt indexu by sa prejavil až pri státisícoch záznamov.
 \end{itemize}
 
 
